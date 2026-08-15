@@ -1,10 +1,12 @@
 import mongoose from "mongoose";
 
 import { Candidate } from "../../models/candidate.model.js";
+
 import {
   candidateProfileSchema,
   type CandidateProfileInput,
 } from "../../schemas/candidate.schema.js";
+
 import { ApiError } from "../../utils/api-error.js";
 
 export interface ResumeMetadata {
@@ -19,15 +21,18 @@ export const createCandidate = async (
   resume?: ResumeMetadata,
 ) => {
   const validatedProfile =
-    candidateProfileSchema.parse(profile);
+    candidateProfileSchema.parse(
+      profile,
+    );
 
-  const candidate = await Candidate.create({
-    ...validatedProfile,
+  const candidate =
+    await Candidate.create({
+      ...validatedProfile,
 
-    ...(resume && {
-      resume,
-    }),
-  });
+      ...(resume && {
+        resume,
+      }),
+    });
 
   return candidate;
 };
@@ -46,5 +51,7 @@ export const getCandidateById = async (
     );
   }
 
-  return Candidate.findById(candidateId);
+  return Candidate.findById(
+    candidateId,
+  );
 };

@@ -1,10 +1,12 @@
 import { Router } from "express";
 
+import { aiResumeRouter } from "./ai-resume.routes.js";
 import { candidateRouter } from "./candidate.routes.js";
 import { healthRouter } from "./health.routes.js";
 import { resumeRouter } from "./resume.routes.js";
 
-export const apiRouter = Router();
+export const apiRouter =
+  Router();
 
 apiRouter.use(
   "/health",
@@ -14,6 +16,11 @@ apiRouter.use(
 apiRouter.use(
   "/resumes",
   resumeRouter,
+);
+
+apiRouter.use(
+  "/ai/resumes",
+  aiResumeRouter,
 );
 
 apiRouter.use(
