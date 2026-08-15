@@ -1,122 +1,142 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
+
+import "./App.css";
+
+import { StatusCard } from "./components/StatusCard";
+
+import type { ExtensionState } from "./types/extension-state";
+
+import type { MessageResponse } from "./types/messages";
+
+const initialState: ExtensionState = {
+  backendConnected: false,
+  workdayDetected: false,
+};
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [
+    extensionState,
+    setExtensionState,
+  ] =
+    useState<ExtensionState>(
+      initialState,
+    );
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState<string>();
+
+  const refreshState =
+    useCallback(
+      async (): Promise<void> => {
+        setLoading(true);
+        setError(undefined);
+
+        try {
+          const response =
+            (await chrome.runtime.sendMessage({
+              type: "GET_EXTENSION_STATE",
+            })) as MessageResponse<ExtensionState>;
+
+          if (
+            !response.success ||
+            !response.data
+          ) {
+            throw new Error(
+              response.error ??
+                "Unable to read extension state.",
+            );
+          }
+
+          setExtensionState(
+            response.data,
+          );
+        } catch (caughtError) {
+          setError(
+            caughtError instanceof Error
+              ? caughtError.message
+              : "Unknown extension error.",
+          );
+        } finally {
+          setLoading(false);
+        }
+      },
+      [],
+    );
+
+  useEffect(() => {
+    void refreshState();
+  }, [refreshState]);
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
+    <main className="popup">
+      <header className="popup-header">
         <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
+          <p className="eyebrow">
+            WORKDAY AI
+          </p>
+
+          <h1>
+            Application Assistant
+          </h1>
+
+          <p className="subtitle">
+            Resume-aware Workday
+            application automation.
           </p>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
+      </header>
+
+      <section className="status-section">
+        <StatusCard
+          label="Backend"
+          connected={
+            extensionState.backendConnected
+          }
+          connectedText="Connected"
+          disconnectedText="Disconnected"
+        />
+
+        <StatusCard
+          label="Workday page"
+          connected={
+            extensionState.workdayDetected
+          }
+          connectedText="Detected"
+          disconnectedText="Not detected"
+        />
       </section>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+      {error && (
+        <div className="error-message">
+          {error}
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      )}
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      <button
+        className="primary-button"
+        type="button"
+        disabled={loading}
+        onClick={() => {
+          void refreshState();
+        }}
+      >
+        {loading
+          ? "Checking..."
+          : "Refresh status"}
+      </button>
+
+      <footer className="popup-footer">
+        Phase 5 · Extension Foundation
+      </footer>
+    </main>
+  );
 }
 
-export default App
+export default App;

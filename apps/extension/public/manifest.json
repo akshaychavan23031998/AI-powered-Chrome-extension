@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "Workday AI Application Assistant",
+  "version": "0.1.0",
+  "description": "AI-powered assistant for reviewing and autofilling Workday job applications.",
+
+  "action": {
+    "default_popup": "index.html",
+    "default_title": "Workday AI Assistant"
+  },
+
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+
+  "host_permissions": [
+    "http://localhost:4000/*",
+    "https://*.myworkdayjobs.com/*",
+    "https://*.workday.com/*"
+  ],
+
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.myworkdayjobs.com/*",
+        "https://*.workday.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}
