@@ -13,12 +13,15 @@ export interface ExtensionState {
 
   workdayDetected: boolean;
 
+  candidateId?: string;
+
   candidate?: CandidateSummary;
 
   lastError?: string;
 }
 
-export const DEFAULT_EXTENSION_STATE: ExtensionState = {
-  backendConnected: false,
-  workdayDetected: false,
-};
+export const DEFAULT_EXTENSION_STATE:
+  ExtensionState = {
+    backendConnected: false,
+    workdayDetected: false,
+  };

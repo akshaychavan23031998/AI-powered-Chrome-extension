@@ -1,4 +1,10 @@
-import type { WorkdayScanResult } from "./dom-field";
+import type {
+  WorkdayScanResult,
+} from "./dom-field";
+
+import type {
+  FieldMappingResult,
+} from "./mapping";
 
 export type ExtensionMessage =
   | {
@@ -15,13 +21,23 @@ export type ExtensionMessage =
       type: "GET_EXTENSION_STATE";
     }
   | {
+      type: "SET_CANDIDATE_ID";
+      candidateId: string;
+    }
+  | {
       type: "SCAN_WORKDAY_PAGE";
     }
   | {
       type: "RUN_DOM_SCAN";
+    }
+  | {
+      type: "MAP_WORKDAY_FIELDS";
+      candidateId: string;
     };
 
-export interface MessageResponse<T = unknown> {
+export interface MessageResponse<
+  T = unknown,
+> {
   success: boolean;
 
   data?: T;
@@ -30,4 +46,11 @@ export interface MessageResponse<T = unknown> {
 }
 
 export type ScanResponse =
-  MessageResponse<WorkdayScanResult>;
+  MessageResponse<
+    WorkdayScanResult
+  >;
+
+export type MappingResponse =
+  MessageResponse<
+    FieldMappingResult
+  >;

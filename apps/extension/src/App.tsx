@@ -4,7 +4,9 @@ import {
   useState,
 } from "react";
 
-// import "./App.css";
+import {
+  MappingSummary,
+} from "./components/MappingSummary";
 
 import {
   ScanSummary,
@@ -23,6 +25,11 @@ import type {
 } from "./types/extension-state";
 
 import type {
+  FieldMappingResult,
+} from "./types/mapping";
+
+import type {
+  MappingResponse,
   MessageResponse,
   ScanResponse,
 } from "./types/messages";
@@ -43,11 +50,25 @@ function App() {
     );
 
   const [
+    candidateId,
+    setCandidateId,
+  ] =
+    useState("");
+
+  const [
     scanResult,
     setScanResult,
   ] =
     useState<
       WorkdayScanResult | undefined
+    >();
+
+  const [
+    mappingResult,
+    setMappingResult,
+  ] =
+    useState<
+      FieldMappingResult | undefined
     >();
 
   const [
@@ -63,6 +84,12 @@ function App() {
     useState(false);
 
   const [
+    mapping,
+    setMapping,
+  ] =
+    useState(false);
+
+  const [
     error,
     setError,
   ] =
@@ -72,7 +99,6 @@ function App() {
     useCallback(
       async (): Promise<void> => {
         setLoading(true);
-
         setError(undefined);
 
         try {
@@ -95,12 +121,17 @@ function App() {
           setExtensionState(
             response.data,
           );
+
+          setCandidateId(
+            response.data
+              .candidateId ??
+              "",
+          );
         } catch (
           caughtError
         ) {
           setError(
-            caughtError instanceof
-              Error
+            caughtError instanceof Error
               ? caughtError.message
               : "Unknown extension error.",
           );
@@ -111,10 +142,58 @@ function App() {
       [],
     );
 
+  const saveCandidateId =
+    async (): Promise<void> => {
+      const normalized =
+        candidateId.trim();
+
+      if (!normalized) {
+        setError(
+          "Candidate ID is required.",
+        );
+
+        return;
+      }
+
+      try {
+        const response =
+          (await chrome.runtime.sendMessage({
+            type:
+              "SET_CANDIDATE_ID",
+
+            candidateId:
+              normalized,
+          })) as MessageResponse<ExtensionState>;
+
+        if (
+          !response.success ||
+          !response.data
+        ) {
+          throw new Error(
+            response.error ??
+              "Unable to save candidate ID.",
+          );
+        }
+
+        setExtensionState(
+          response.data,
+        );
+
+        setError(undefined);
+      } catch (
+        caughtError
+      ) {
+        setError(
+          caughtError instanceof Error
+            ? caughtError.message
+            : "Unable to save candidate ID.",
+        );
+      }
+    };
+
   const scanPage =
     async (): Promise<void> => {
       setScanning(true);
-
       setError(undefined);
 
       try {
@@ -137,6 +216,10 @@ function App() {
         setScanResult(
           response.data,
         );
+
+        setMappingResult(
+          undefined,
+        );
       } catch (
         caughtError
       ) {
@@ -145,13 +228,68 @@ function App() {
         );
 
         setError(
-          caughtError instanceof
-            Error
+          caughtError instanceof Error
             ? caughtError.message
             : "Unknown scanning error.",
         );
       } finally {
         setScanning(false);
+      }
+    };
+
+  const mapPage =
+    async (): Promise<void> => {
+      const id =
+        candidateId.trim();
+
+      if (!id) {
+        setError(
+          "Enter and save a candidate ID first.",
+        );
+
+        return;
+      }
+
+      setMapping(true);
+      setError(undefined);
+
+      try {
+        const response =
+          (await chrome.runtime.sendMessage({
+            type:
+              "MAP_WORKDAY_FIELDS",
+
+            candidateId:
+              id,
+          })) as MappingResponse;
+
+        if (
+          !response.success ||
+          !response.data
+        ) {
+          throw new Error(
+            response.error ??
+              "Unable to map Workday fields.",
+          );
+        }
+
+        setMappingResult(
+          response.data,
+        );
+      } catch (
+        caughtError
+      ) {
+        setMappingResult(
+          undefined,
+        );
+
+        setError(
+          caughtError instanceof Error
+            ? caughtError.message
+            : "Unknown mapping error.",
+        );
+      } finally {
+        setMapping(false);
       }
     };
 
@@ -162,20 +300,18 @@ function App() {
   return (
     <main className="popup">
       <header className="popup-header">
-        <div>
-          <p className="eyebrow">
-            WORKDAY AI
-          </p>
+        <p className="eyebrow">
+          WORKDAY AI
+        </p>
 
-          <h1>
-            Application Assistant
-          </h1>
+        <h1>
+          Application Assistant
+        </h1>
 
-          <p className="subtitle">
-            Resume-aware Workday
-            application automation.
-          </p>
-        </div>
+        <p className="subtitle">
+          Resume-aware Workday
+          application automation.
+        </p>
       </header>
 
       <section className="status-section">
@@ -198,10 +334,53 @@ function App() {
         />
       </section>
 
+      <section className="candidate-section">
+        <label
+          htmlFor="candidateId"
+          className="status-label"
+        >
+          Candidate ID
+        </label>
+
+        <div className="candidate-input-row">
+          <input
+            id="candidateId"
+            value={
+              candidateId
+            }
+            onChange={(
+              event,
+            ) => {
+              setCandidateId(
+                event.target.value,
+              );
+            }}
+            placeholder="MongoDB candidate ID"
+          />
+
+          <button
+            type="button"
+            onClick={() => {
+              void saveCandidateId();
+            }}
+          >
+            Save
+          </button>
+        </div>
+      </section>
+
       {scanResult && (
         <ScanSummary
           result={
             scanResult
+          }
+        />
+      )}
+
+      {mappingResult && (
+        <MappingSummary
+          result={
+            mappingResult
           }
         />
       )}
@@ -217,7 +396,8 @@ function App() {
         type="button"
         disabled={
           loading ||
-          scanning
+          scanning ||
+          mapping
         }
         onClick={() => {
           void refreshState();
@@ -244,8 +424,25 @@ function App() {
           : "Scan Workday page"}
       </button>
 
+      <button
+        className="secondary-button"
+        type="button"
+        disabled={
+          mapping ||
+          !extensionState.workdayDetected ||
+          !candidateId.trim()
+        }
+        onClick={() => {
+          void mapPage();
+        }}
+      >
+        {mapping
+          ? "Mapping..."
+          : "Map fields to candidate"}
+      </button>
+
       <footer className="popup-footer">
-        Phase 6 · Workday DOM Scanner
+        Phase 7 · Semantic Field Mapping
       </footer>
     </main>
   );
