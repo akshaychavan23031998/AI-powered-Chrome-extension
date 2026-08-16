@@ -21,6 +21,10 @@ import type {
 } from "./navigation";
 
 import type {
+  QuestionScanResult,
+} from "./question";
+
+import type {
   AddRepeatableEntryResult,
   DynamicSectionScanResult,
   RepeatableSectionKind,
@@ -105,6 +109,12 @@ export type ExtensionMessage =
     }
   | {
       type: "RUN_NAVIGATE_BACK";
+    }
+  | {
+      type: "SCAN_WORKDAY_QUESTIONS";
+    }
+  | {
+      type: "RUN_QUESTION_SCAN";
     };
 
 export interface MessageResponse<T = unknown> {
@@ -136,3 +146,6 @@ export type NavigationStateResponse =
 
 export type NavigationActionResponse =
   MessageResponse<WorkdayNavigationResult>;
+
+export type QuestionScanResponse =
+  MessageResponse<QuestionScanResult>;

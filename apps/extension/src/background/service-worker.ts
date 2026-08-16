@@ -26,6 +26,7 @@ import type {
   MessageResponse,
   NavigationActionResponse,
   NavigationStateResponse,
+  QuestionScanResponse,
   RepeatableAutofillResponse,
   ScanResponse,
 } from "../types/messages";
@@ -301,10 +302,14 @@ const autofillActiveTab =
       return {
         success: true,
         data: {
-          attemptedCount: 0,
-          filledCount: 0,
-          skippedCount: 0,
-          failedCount: 0,
+          attemptedCount:
+            0,
+          filledCount:
+            0,
+          skippedCount:
+            0,
+          failedCount:
+            0,
           results: [],
         },
       };
@@ -567,6 +572,55 @@ const navigateBackOnActiveTab =
     }
   };
 
+const scanQuestionsOnActiveTab =
+  async (): Promise<QuestionScanResponse> => {
+    const tab =
+      await getActiveTab();
+
+    if (!tab?.id) {
+      return {
+        success: false,
+        error:
+          "No active browser tab found.",
+      };
+    }
+
+    if (
+      !isWorkdayUrl(
+        tab.url,
+      )
+    ) {
+      return {
+        success: false,
+        error:
+          "Open a Workday page before scanning questions.",
+      };
+    }
+
+    try {
+      return (
+        await chrome.tabs.sendMessage(
+          tab.id,
+          {
+            type:
+              "RUN_QUESTION_SCAN",
+          },
+        )
+      ) as QuestionScanResponse;
+    } catch (error) {
+      console.error(
+        "Unable to scan Workday questions:",
+        error,
+      );
+
+      return {
+        success: false,
+        error:
+          "Unable to scan Workday questions. Refresh the page and try again.",
+      };
+    }
+  };
+
 chrome.runtime.onMessage.addListener(
   (
     message:
@@ -768,6 +822,17 @@ chrome.runtime.onMessage.addListener(
       "NAVIGATE_WORKDAY_BACK"
     ) {
       void navigateBackOnActiveTab().then(
+        sendResponse,
+      );
+
+      return true;
+    }
+
+    if (
+      message.type ===
+      "SCAN_WORKDAY_QUESTIONS"
+    ) {
+      void scanQuestionsOnActiveTab().then(
         sendResponse,
       );
 

@@ -16,6 +16,10 @@ import {
 } from "../navigator/workday-step-detector";
 
 import {
+  scanQuestions,
+} from "../questions/question-detector";
+
+import {
   autofillRepeatableSections,
 } from "../repeatable/repeatable-autofill-engine";
 
@@ -343,6 +347,36 @@ chrome.runtime.onMessage.addListener(
         });
 
       return true;
+    }
+
+    if (
+      message.type ===
+      "RUN_QUESTION_SCAN"
+    ) {
+      try {
+        const result =
+          scanQuestions();
+
+        console.log(
+          "Workday question scan completed:",
+          result,
+        );
+
+        sendResponse({
+          success: true,
+          data: result,
+        });
+      } catch (error) {
+        sendResponse({
+          success: false,
+          error:
+            error instanceof Error
+              ? error.message
+              : "Unable to scan Workday questions.",
+        });
+      }
+
+      return false;
     }
 
     return false;

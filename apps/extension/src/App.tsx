@@ -48,6 +48,7 @@ import type {
   MessageResponse,
   NavigationActionResponse,
   NavigationStateResponse,
+  QuestionScanResponse,
   RepeatableAutofillResponse,
   ScanResponse,
 } from "./types/messages";
@@ -56,6 +57,10 @@ import type {
   WorkdayNavigationResult,
   WorkdayNavigationState,
 } from "./types/navigation";
+
+import type {
+  QuestionScanResult,
+} from "./types/question";
 
 import type {
   DynamicSectionScanResult,
@@ -134,6 +139,13 @@ function App() {
   >();
 
   const [
+    questionResult,
+    setQuestionResult,
+  ] = useState<
+    QuestionScanResult | undefined
+  >();
+
+  const [
     loading,
     setLoading,
   ] = useState(true);
@@ -169,6 +181,11 @@ function App() {
   ] = useState(false);
 
   const [
+    scanningQuestions,
+    setScanningQuestions,
+  ] = useState(false);
+
+  const [
     navigating,
     setNavigating,
   ] = useState(false);
@@ -194,8 +211,7 @@ function App() {
         try {
           const response =
             (await chrome.runtime.sendMessage({
-              type:
-                "GET_EXTENSION_STATE",
+              type: "GET_EXTENSION_STATE",
             })) as MessageResponse<ExtensionState>;
 
           if (
@@ -213,13 +229,10 @@ function App() {
           );
 
           setCandidateId(
-            response.data
-              .candidateId ??
+            response.data.candidateId ??
               "",
           );
-        } catch (
-          caughtError
-        ) {
+        } catch (caughtError) {
           setError(
             caughtError instanceof Error
               ? caughtError.message
@@ -247,11 +260,8 @@ function App() {
 
       const response =
         (await chrome.runtime.sendMessage({
-          type:
-            "SET_CANDIDATE_ID",
-
-          candidateId:
-            normalized,
+          type: "SET_CANDIDATE_ID",
+          candidateId: normalized,
         })) as MessageResponse<ExtensionState>;
 
       if (
@@ -281,8 +291,7 @@ function App() {
       try {
         const response =
           (await chrome.runtime.sendMessage({
-            type:
-              "SCAN_WORKDAY_PAGE",
+            type: "SCAN_WORKDAY_PAGE",
           })) as ScanResponse;
 
         if (
@@ -298,9 +307,7 @@ function App() {
         setScanResult(
           response.data,
         );
-      } catch (
-        caughtError
-      ) {
+      } catch (caughtError) {
         setError(
           caughtError instanceof Error
             ? caughtError.message
@@ -330,11 +337,8 @@ function App() {
       try {
         const response =
           (await chrome.runtime.sendMessage({
-            type:
-              "MAP_WORKDAY_FIELDS",
-
-            candidateId:
-              id,
+            type: "MAP_WORKDAY_FIELDS",
+            candidateId: id,
           })) as MappingResponse;
 
         if (
@@ -350,9 +354,7 @@ function App() {
         setMappingResult(
           response.data,
         );
-      } catch (
-        caughtError
-      ) {
+      } catch (caughtError) {
         setError(
           caughtError instanceof Error
             ? caughtError.message
@@ -390,11 +392,8 @@ function App() {
       try {
         const response =
           (await chrome.runtime.sendMessage({
-            type:
-              "AUTOFILL_WORKDAY_FIELDS",
-
-            candidateId:
-              id,
+            type: "AUTOFILL_WORKDAY_FIELDS",
+            candidateId: id,
           })) as AutofillResponse;
 
         if (
@@ -410,9 +409,7 @@ function App() {
         setFillResult(
           response.data,
         );
-      } catch (
-        caughtError
-      ) {
+      } catch (caughtError) {
         setError(
           caughtError instanceof Error
             ? caughtError.message
@@ -431,8 +428,7 @@ function App() {
       try {
         const response =
           (await chrome.runtime.sendMessage({
-            type:
-              "SCAN_DYNAMIC_SECTIONS",
+            type: "SCAN_DYNAMIC_SECTIONS",
           })) as DynamicScanResponse;
 
         if (
@@ -448,9 +444,7 @@ function App() {
         setDynamicResult(
           response.data,
         );
-      } catch (
-        caughtError
-      ) {
+      } catch (caughtError) {
         setError(
           caughtError instanceof Error
             ? caughtError.message
@@ -472,9 +466,7 @@ function App() {
       try {
         const response =
           (await chrome.runtime.sendMessage({
-            type:
-              "ADD_REPEATABLE_ENTRY",
-
+            type: "ADD_REPEATABLE_ENTRY",
             kind,
           })) as AddRepeatableEntryResponse;
 
@@ -491,9 +483,7 @@ function App() {
         setDynamicResult(
           response.data.scan,
         );
-      } catch (
-        caughtError
-      ) {
+      } catch (caughtError) {
         setError(
           caughtError instanceof Error
             ? caughtError.message
@@ -536,11 +526,8 @@ function App() {
       try {
         const response =
           (await chrome.runtime.sendMessage({
-            type:
-              "AUTOFILL_REPEATABLE_SECTIONS",
-
-            candidateId:
-              id,
+            type: "AUTOFILL_REPEATABLE_SECTIONS",
+            candidateId: id,
           })) as RepeatableAutofillResponse;
 
         if (
@@ -556,9 +543,7 @@ function App() {
         setRepeatableFillResult(
           response.data,
         );
-      } catch (
-        caughtError
-      ) {
+      } catch (caughtError) {
         setError(
           caughtError instanceof Error
             ? caughtError.message
@@ -582,8 +567,7 @@ function App() {
       try {
         const response =
           (await chrome.runtime.sendMessage({
-            type:
-              "SCAN_WORKDAY_NAVIGATION",
+            type: "SCAN_WORKDAY_NAVIGATION",
           })) as NavigationStateResponse;
 
         if (
@@ -603,9 +587,7 @@ function App() {
         setNavigationResult(
           undefined,
         );
-      } catch (
-        caughtError
-      ) {
+      } catch (caughtError) {
         setError(
           caughtError instanceof Error
             ? caughtError.message
@@ -613,6 +595,46 @@ function App() {
         );
       } finally {
         setScanningNavigation(
+          false,
+        );
+      }
+    };
+
+  const scanWorkdayQuestions =
+    async (): Promise<void> => {
+      setScanningQuestions(
+        true,
+      );
+
+      setError(undefined);
+
+      try {
+        const response =
+          (await chrome.runtime.sendMessage({
+            type: "SCAN_WORKDAY_QUESTIONS",
+          })) as QuestionScanResponse;
+
+        if (
+          !response.success ||
+          !response.data
+        ) {
+          throw new Error(
+            response.error ??
+              "Unable to scan Workday questions.",
+          );
+        }
+
+        setQuestionResult(
+          response.data,
+        );
+      } catch (caughtError) {
+        setError(
+          caughtError instanceof Error
+            ? caughtError.message
+            : "Unable to scan Workday questions.",
+        );
+      } finally {
+        setScanningQuestions(
           false,
         );
       }
@@ -646,8 +668,7 @@ function App() {
       try {
         const response =
           (await chrome.runtime.sendMessage({
-            type:
-              "NAVIGATE_WORKDAY_CONTINUE",
+            type: "NAVIGATE_WORKDAY_CONTINUE",
           })) as NavigationActionResponse;
 
         if (
@@ -669,16 +690,13 @@ function App() {
         );
 
         if (
-          !response.data
-            .navigated
+          !response.data.navigated
         ) {
           setError(
             response.data.reason,
           );
         }
-      } catch (
-        caughtError
-      ) {
+      } catch (caughtError) {
         setError(
           caughtError instanceof Error
             ? caughtError.message
@@ -697,8 +715,7 @@ function App() {
       try {
         const response =
           (await chrome.runtime.sendMessage({
-            type:
-              "NAVIGATE_WORKDAY_BACK",
+            type: "NAVIGATE_WORKDAY_BACK",
           })) as NavigationActionResponse;
 
         if (
@@ -718,9 +735,7 @@ function App() {
         setNavigationState(
           response.data.state,
         );
-      } catch (
-        caughtError
-      ) {
+      } catch (caughtError) {
         setError(
           caughtError instanceof Error
             ? caughtError.message
@@ -743,6 +758,7 @@ function App() {
     scanningDynamic ||
     fillingRepeatable ||
     scanningNavigation ||
+    scanningQuestions ||
     navigating ||
     Boolean(
       addingSection,
@@ -902,6 +918,7 @@ function App() {
                   repeatableFillResult.filledCount
                 }
               </strong>
+
               <span>
                 Filled
               </span>
@@ -913,6 +930,7 @@ function App() {
                   repeatableFillResult.skippedCount
                 }
               </strong>
+
               <span>
                 Skipped
               </span>
@@ -924,6 +942,7 @@ function App() {
                   repeatableFillResult.failedCount
                 }
               </strong>
+
               <span>
                 Failed
               </span>
@@ -965,6 +984,7 @@ function App() {
                   ? "Yes"
                   : "No"}
               </strong>
+
               <span>
                 Back
               </span>
@@ -976,6 +996,7 @@ function App() {
                   ? "Yes"
                   : "No"}
               </strong>
+
               <span>
                 Continue
               </span>
@@ -987,6 +1008,7 @@ function App() {
                   ? "YES"
                   : "No"}
               </strong>
+
               <span>
                 Submit
               </span>
@@ -1035,6 +1057,106 @@ function App() {
           >
             Save & Continue
           </button>
+        </section>
+      )}
+
+      {questionResult && (
+        <section className="fill-summary">
+          <p className="status-label">
+            Workday Questions
+          </p>
+
+          <p className="scan-title">
+            {
+              questionResult.questionCount
+            }{" "}
+            questions detected
+          </p>
+
+          <div className="scan-stats">
+            <div>
+              <strong>
+                {
+                  questionResult.normalCount
+                }
+              </strong>
+
+              <span>
+                Normal
+              </span>
+            </div>
+
+            <div>
+              <strong>
+                {
+                  questionResult.sensitiveCount
+                }
+              </strong>
+
+              <span>
+                Sensitive
+              </span>
+            </div>
+
+            <div>
+              <strong>
+                {
+                  questionResult.unansweredCount
+                }
+              </strong>
+
+              <span>
+                Unanswered
+              </span>
+            </div>
+          </div>
+
+          {questionResult.questions.map(
+            (
+              question,
+              index,
+            ) => (
+              <div
+                key={`${question.id}-${index}`}
+                className="mapping-empty"
+              >
+                <strong>
+                  {question.sensitivity ===
+                  "sensitive"
+                    ? "⚠ Sensitive"
+                    : "Question"}
+                </strong>
+
+                <div>
+                  {
+                    question.label
+                  }
+                </div>
+
+                <div>
+                  Type:{" "}
+                  {
+                    question.controlKind
+                  }
+                  {" · "}
+                  Category:{" "}
+                  {
+                    question.category
+                  }
+                </div>
+
+                <div>
+                  {question.required
+                    ? "Required"
+                    : "Optional"}
+                  {" · "}
+                  {question.answered
+                    ? "Answered"
+                    : "Unanswered"}
+                </div>
+              </div>
+            ),
+          )}
         </section>
       )}
 
@@ -1135,8 +1257,24 @@ function App() {
           : "Detect navigation"}
       </button>
 
+      <button
+        className="secondary-button"
+        type="button"
+        disabled={
+          busy ||
+          !extensionState.workdayDetected
+        }
+        onClick={() =>
+          void scanWorkdayQuestions()
+        }
+      >
+        {scanningQuestions
+          ? "Detecting questions..."
+          : "Detect Questions"}
+      </button>
+
       <footer className="popup-footer">
-        Phase 10 · Multi-Step Navigator
+        Phase 11 · Question Intelligence
       </footer>
     </main>
   );
