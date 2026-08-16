@@ -24,6 +24,8 @@ import type {
   ExtensionMessage,
   MappingResponse,
   MessageResponse,
+  NavigationActionResponse,
+  NavigationStateResponse,
   RepeatableAutofillResponse,
   ScanResponse,
 } from "../types/messages";
@@ -82,7 +84,6 @@ const scanActiveTab =
     if (!tab?.id) {
       return {
         success: false,
-
         error:
           "No active browser tab found.",
       };
@@ -95,7 +96,6 @@ const scanActiveTab =
     ) {
       return {
         success: false,
-
         error:
           "Open a Workday page before scanning.",
       };
@@ -119,7 +119,6 @@ const scanActiveTab =
 
       return {
         success: false,
-
         error:
           "Unable to scan this Workday page. Refresh the page and try again.",
       };
@@ -128,8 +127,7 @@ const scanActiveTab =
 
 const mapActiveTab =
   async (
-    candidateId:
-      string,
+    candidateId: string,
   ): Promise<MappingResponse> => {
     const scan =
       await scanActiveTab();
@@ -140,7 +138,6 @@ const mapActiveTab =
     ) {
       return {
         success: false,
-
         error:
           scan.error ??
           "Unable to scan Workday fields.",
@@ -156,17 +153,13 @@ const mapActiveTab =
 
       return {
         success: true,
-
-        data:
-          mappingResult,
+        data: mappingResult,
       };
     } catch (error) {
       return {
         success: false,
-
         error:
-          error instanceof
-            Error
+          error instanceof Error
             ? error.message
             : "Unable to map Workday fields.",
       };
@@ -175,8 +168,7 @@ const mapActiveTab =
 
 const autofillActiveTab =
   async (
-    candidateId:
-      string,
+    candidateId: string,
   ): Promise<AutofillResponse> => {
     const tab =
       await getActiveTab();
@@ -184,7 +176,6 @@ const autofillActiveTab =
     if (!tab?.id) {
       return {
         success: false,
-
         error:
           "No active browser tab found.",
       };
@@ -197,7 +188,6 @@ const autofillActiveTab =
     ) {
       return {
         success: false,
-
         error:
           "Open a Workday page before autofilling.",
       };
@@ -212,7 +202,6 @@ const autofillActiveTab =
     ) {
       return {
         success: false,
-
         error:
           scan.error ??
           "Unable to scan Workday fields.",
@@ -230,10 +219,8 @@ const autofillActiveTab =
     } catch (error) {
       return {
         success: false,
-
         error:
-          error instanceof
-            Error
+          error instanceof Error
             ? error.message
             : "Unable to map Workday fields.",
       };
@@ -313,16 +300,11 @@ const autofillActiveTab =
     ) {
       return {
         success: true,
-
         data: {
           attemptedCount: 0,
-
           filledCount: 0,
-
           skippedCount: 0,
-
           failedCount: 0,
-
           results: [],
         },
       };
@@ -340,15 +322,9 @@ const autofillActiveTab =
           },
         )
       ) as AutofillResponse;
-    } catch (error) {
-      console.error(
-        "Unable to run Workday autofill:",
-        error,
-      );
-
+    } catch {
       return {
         success: false,
-
         error:
           "Unable to run autofill on this Workday page.",
       };
@@ -363,22 +339,8 @@ const scanDynamicSections =
     if (!tab?.id) {
       return {
         success: false,
-
         error:
           "No active browser tab found.",
-      };
-    }
-
-    if (
-      !isWorkdayUrl(
-        tab.url,
-      )
-    ) {
-      return {
-        success: false,
-
-        error:
-          "Open a Workday page before detecting dynamic sections.",
       };
     }
 
@@ -392,17 +354,11 @@ const scanDynamicSections =
           },
         )
       ) as DynamicScanResponse;
-    } catch (error) {
-      console.error(
-        "Unable to detect dynamic Workday sections:",
-        error,
-      );
-
+    } catch {
       return {
         success: false,
-
         error:
-          "Unable to detect dynamic Workday sections. Refresh the page and try again.",
+          "Unable to detect dynamic Workday sections.",
       };
     }
   };
@@ -424,22 +380,8 @@ const addRepeatableEntryOnActiveTab =
     if (!tab?.id) {
       return {
         success: false,
-
         error:
           "No active browser tab found.",
-      };
-    }
-
-    if (
-      !isWorkdayUrl(
-        tab.url,
-      )
-    ) {
-      return {
-        success: false,
-
-        error:
-          "Open a Workday page before adding a repeatable section.",
       };
     }
 
@@ -450,30 +392,22 @@ const addRepeatableEntryOnActiveTab =
           {
             type:
               "RUN_ADD_REPEATABLE_ENTRY",
-
             kind,
           },
         )
       ) as AddRepeatableEntryResponse;
-    } catch (error) {
-      console.error(
-        "Unable to add repeatable Workday entry:",
-        error,
-      );
-
+    } catch {
       return {
         success: false,
-
         error:
-          "Unable to add the repeatable Workday entry.",
+          "Unable to add repeatable Workday entry.",
       };
     }
   };
 
 const autofillRepeatableSectionsOnActiveTab =
   async (
-    candidateId:
-      string,
+    candidateId: string,
   ): Promise<RepeatableAutofillResponse> => {
     const tab =
       await getActiveTab();
@@ -481,22 +415,8 @@ const autofillRepeatableSectionsOnActiveTab =
     if (!tab?.id) {
       return {
         success: false,
-
         error:
           "No active browser tab found.",
-      };
-    }
-
-    if (
-      !isWorkdayUrl(
-        tab.url,
-      )
-    ) {
-      return {
-        success: false,
-
-        error:
-          "Open a Workday My Experience page before autofilling Experience and Education.",
       };
     }
 
@@ -511,9 +431,7 @@ const autofillRepeatableSectionsOnActiveTab =
       const payload =
         (await response.json()) as {
           success: boolean;
-
           data?: CandidateProfile;
-
           error?: string;
         };
 
@@ -524,7 +442,6 @@ const autofillRepeatableSectionsOnActiveTab =
       ) {
         return {
           success: false,
-
           error:
             payload.error ??
             "Unable to load candidate profile.",
@@ -544,19 +461,108 @@ const autofillRepeatableSectionsOnActiveTab =
         )
       ) as RepeatableAutofillResponse;
     } catch (error) {
-      console.error(
-        "Unable to autofill repeatable Workday sections:",
-        error,
-      );
-
       return {
         success: false,
-
         error:
-          error instanceof
-            Error
+          error instanceof Error
             ? error.message
             : "Unable to autofill Experience and Education.",
+      };
+    }
+  };
+
+const scanNavigationOnActiveTab =
+  async (): Promise<NavigationStateResponse> => {
+    const tab =
+      await getActiveTab();
+
+    if (!tab?.id) {
+      return {
+        success: false,
+        error:
+          "No active browser tab found.",
+      };
+    }
+
+    try {
+      return (
+        await chrome.tabs.sendMessage(
+          tab.id,
+          {
+            type:
+              "RUN_NAVIGATION_SCAN",
+          },
+        )
+      ) as NavigationStateResponse;
+    } catch {
+      return {
+        success: false,
+        error:
+          "Unable to detect Workday navigation state.",
+      };
+    }
+  };
+
+const navigateContinueOnActiveTab =
+  async (): Promise<NavigationActionResponse> => {
+    const tab =
+      await getActiveTab();
+
+    if (!tab?.id) {
+      return {
+        success: false,
+        error:
+          "No active browser tab found.",
+      };
+    }
+
+    try {
+      return (
+        await chrome.tabs.sendMessage(
+          tab.id,
+          {
+            type:
+              "RUN_NAVIGATE_CONTINUE",
+          },
+        )
+      ) as NavigationActionResponse;
+    } catch {
+      return {
+        success: false,
+        error:
+          "Unable to navigate to the next Workday step.",
+      };
+    }
+  };
+
+const navigateBackOnActiveTab =
+  async (): Promise<NavigationActionResponse> => {
+    const tab =
+      await getActiveTab();
+
+    if (!tab?.id) {
+      return {
+        success: false,
+        error:
+          "No active browser tab found.",
+      };
+    }
+
+    try {
+      return (
+        await chrome.tabs.sendMessage(
+          tab.id,
+          {
+            type:
+              "RUN_NAVIGATE_BACK",
+          },
+        )
+      ) as NavigationActionResponse;
+    } catch {
+      return {
+        success: false,
+        error:
+          "Unable to navigate to the previous Workday step.",
       };
     }
   };
@@ -580,7 +586,6 @@ chrome.runtime.onMessage.addListener(
     ) {
       sendResponse({
         success: true,
-
         data: {
           message:
             "PONG",
@@ -600,9 +605,7 @@ chrome.runtime.onMessage.addListener(
       }).then((state) => {
         sendResponse({
           success: true,
-
-          data:
-            state,
+          data: state,
         });
       });
 
@@ -619,7 +622,6 @@ chrome.runtime.onMessage.addListener(
       if (!candidateId) {
         sendResponse({
           success: false,
-
           error:
             "Candidate ID is required.",
         });
@@ -630,16 +632,9 @@ chrome.runtime.onMessage.addListener(
       void updateExtensionState({
         candidateId,
       }).then((state) => {
-        console.log(
-          "Candidate ID saved:",
-          candidateId,
-        );
-
         sendResponse({
           success: true,
-
-          data:
-            state,
+          data: state,
         });
       });
 
@@ -660,15 +655,12 @@ chrome.runtime.onMessage.addListener(
         const state =
           await updateExtensionState({
             ...current,
-
             backendConnected,
           });
 
         sendResponse({
           success: true,
-
-          data:
-            state,
+          data: state,
         });
       })();
 
@@ -749,13 +741,44 @@ chrome.runtime.onMessage.addListener(
       return true;
     }
 
+    if (
+      message.type ===
+      "SCAN_WORKDAY_NAVIGATION"
+    ) {
+      void scanNavigationOnActiveTab().then(
+        sendResponse,
+      );
+
+      return true;
+    }
+
+    if (
+      message.type ===
+      "NAVIGATE_WORKDAY_CONTINUE"
+    ) {
+      void navigateContinueOnActiveTab().then(
+        sendResponse,
+      );
+
+      return true;
+    }
+
+    if (
+      message.type ===
+      "NAVIGATE_WORKDAY_BACK"
+    ) {
+      void navigateBackOnActiveTab().then(
+        sendResponse,
+      );
+
+      return true;
+    }
+
     void getExtensionState().then(
       (state) => {
         sendResponse({
           success: true,
-
-          data:
-            state,
+          data: state,
         });
       },
     );

@@ -16,6 +16,11 @@ import type {
 } from "./mapping";
 
 import type {
+  WorkdayNavigationResult,
+  WorkdayNavigationState,
+} from "./navigation";
+
+import type {
   AddRepeatableEntryResult,
   DynamicSectionScanResult,
   RepeatableSectionKind,
@@ -82,6 +87,24 @@ export type ExtensionMessage =
   | {
       type: "RUN_REPEATABLE_AUTOFILL";
       candidate: CandidateProfile;
+    }
+  | {
+      type: "SCAN_WORKDAY_NAVIGATION";
+    }
+  | {
+      type: "RUN_NAVIGATION_SCAN";
+    }
+  | {
+      type: "NAVIGATE_WORKDAY_CONTINUE";
+    }
+  | {
+      type: "RUN_NAVIGATE_CONTINUE";
+    }
+  | {
+      type: "NAVIGATE_WORKDAY_BACK";
+    }
+  | {
+      type: "RUN_NAVIGATE_BACK";
     };
 
 export interface MessageResponse<T = unknown> {
@@ -107,3 +130,9 @@ export type AddRepeatableEntryResponse =
 
 export type RepeatableAutofillResponse =
   MessageResponse<RepeatableAutofillResult>;
+
+export type NavigationStateResponse =
+  MessageResponse<WorkdayNavigationState>;
+
+export type NavigationActionResponse =
+  MessageResponse<WorkdayNavigationResult>;

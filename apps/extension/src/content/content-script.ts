@@ -7,6 +7,15 @@ import {
 } from "../filler/autofill-engine";
 
 import {
+  navigateWorkdayBack,
+  navigateWorkdayContinue,
+} from "../navigator/workday-navigator";
+
+import {
+  scanWorkdayNavigationState,
+} from "../navigator/workday-step-detector";
+
+import {
   autofillRepeatableSections,
 } from "../repeatable/repeatable-autofill-engine";
 
@@ -38,9 +47,7 @@ const notifyWorkdayDetection =
 
     try {
       await chrome.runtime.sendMessage({
-        type:
-          "WORKDAY_DETECTED",
-
+        type: "WORKDAY_DETECTED",
         detected,
       });
     } catch (error) {
@@ -61,15 +68,10 @@ void notifyWorkdayDetection();
 
 chrome.runtime.onMessage.addListener(
   (
-    message:
-      ExtensionMessage,
-
-    _sender:
-      chrome.runtime.MessageSender,
-
+    message: ExtensionMessage,
+    _sender: chrome.runtime.MessageSender,
     sendResponse: (
-      response:
-        MessageResponse,
+      response: MessageResponse,
     ) => void,
   ) => {
     if (
@@ -78,7 +80,6 @@ chrome.runtime.onMessage.addListener(
     ) {
       sendResponse({
         success: true,
-
         data: {
           detected:
             isWorkdayPage(),
@@ -103,14 +104,11 @@ chrome.runtime.onMessage.addListener(
 
         sendResponse({
           success: true,
-
-          data:
-            result,
+          data: result,
         });
       } catch (error) {
         sendResponse({
           success: false,
-
           error:
             error instanceof Error
               ? error.message
@@ -136,20 +134,12 @@ chrome.runtime.onMessage.addListener(
 
           sendResponse({
             success: true,
-
-            data:
-              result,
+            data: result,
           });
         })
         .catch((error) => {
-          console.error(
-            "Workday autofill failed:",
-            error,
-          );
-
           sendResponse({
             success: false,
-
             error:
               error instanceof Error
                 ? error.message
@@ -175,19 +165,11 @@ chrome.runtime.onMessage.addListener(
 
         sendResponse({
           success: true,
-
-          data:
-            result,
+          data: result,
         });
       } catch (error) {
-        console.error(
-          "Dynamic Workday section scan failed:",
-          error,
-        );
-
         sendResponse({
           success: false,
-
           error:
             error instanceof Error
               ? error.message
@@ -213,20 +195,12 @@ chrome.runtime.onMessage.addListener(
 
           sendResponse({
             success: true,
-
-            data:
-              result,
+            data: result,
           });
         })
         .catch((error) => {
-          console.error(
-            "Adding repeatable Workday entry failed:",
-            error,
-          );
-
           sendResponse({
             success: false,
-
             error:
               error instanceof Error
                 ? error.message
@@ -267,20 +241,12 @@ chrome.runtime.onMessage.addListener(
 
           sendResponse({
             success: true,
-
-            data:
-              result,
+            data: result,
           });
         })
         .catch((error) => {
-          console.error(
-            "Workday repeatable autofill failed:",
-            error,
-          );
-
           sendResponse({
             success: false,
-
             error:
               error instanceof Error
                 ? error.message
@@ -291,10 +257,93 @@ chrome.runtime.onMessage.addListener(
       return true;
     }
 
-    console.debug(
-      "Unhandled Workday content-script message:",
-      message,
-    );
+    if (
+      message.type ===
+      "RUN_NAVIGATION_SCAN"
+    ) {
+      try {
+        const result =
+          scanWorkdayNavigationState();
+
+        console.log(
+          "Workday navigation scan completed:",
+          result,
+        );
+
+        sendResponse({
+          success: true,
+          data: result,
+        });
+      } catch (error) {
+        sendResponse({
+          success: false,
+          error:
+            error instanceof Error
+              ? error.message
+              : "Unable to detect Workday navigation state.",
+        });
+      }
+
+      return false;
+    }
+
+    if (
+      message.type ===
+      "RUN_NAVIGATE_CONTINUE"
+    ) {
+      void navigateWorkdayContinue()
+        .then((result) => {
+          console.log(
+            "Workday continue navigation result:",
+            result,
+          );
+
+          sendResponse({
+            success: true,
+            data: result,
+          });
+        })
+        .catch((error) => {
+          sendResponse({
+            success: false,
+            error:
+              error instanceof Error
+                ? error.message
+                : "Unable to navigate to the next Workday step.",
+          });
+        });
+
+      return true;
+    }
+
+    if (
+      message.type ===
+      "RUN_NAVIGATE_BACK"
+    ) {
+      void navigateWorkdayBack()
+        .then((result) => {
+          console.log(
+            "Workday back navigation result:",
+            result,
+          );
+
+          sendResponse({
+            success: true,
+            data: result,
+          });
+        })
+        .catch((error) => {
+          sendResponse({
+            success: false,
+            error:
+              error instanceof Error
+                ? error.message
+                : "Unable to navigate to the previous Workday step.",
+          });
+        });
+
+      return true;
+    }
 
     return false;
   },

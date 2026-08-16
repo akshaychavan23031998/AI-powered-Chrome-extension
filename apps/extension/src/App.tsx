@@ -46,9 +46,16 @@ import type {
   DynamicScanResponse,
   MappingResponse,
   MessageResponse,
+  NavigationActionResponse,
+  NavigationStateResponse,
   RepeatableAutofillResponse,
   ScanResponse,
 } from "./types/messages";
+
+import type {
+  WorkdayNavigationResult,
+  WorkdayNavigationState,
+} from "./types/navigation";
 
 import type {
   DynamicSectionScanResult,
@@ -113,6 +120,20 @@ function App() {
   >();
 
   const [
+    navigationState,
+    setNavigationState,
+  ] = useState<
+    WorkdayNavigationState | undefined
+  >();
+
+  const [
+    navigationResult,
+    setNavigationResult,
+  ] = useState<
+    WorkdayNavigationResult | undefined
+  >();
+
+  const [
     loading,
     setLoading,
   ] = useState(true);
@@ -140,6 +161,16 @@ function App() {
   const [
     fillingRepeatable,
     setFillingRepeatable,
+  ] = useState(false);
+
+  const [
+    scanningNavigation,
+    setScanningNavigation,
+  ] = useState(false);
+
+  const [
+    navigating,
+    setNavigating,
   ] = useState(false);
 
   const [
@@ -190,8 +221,7 @@ function App() {
           caughtError
         ) {
           setError(
-            caughtError instanceof
-              Error
+            caughtError instanceof Error
               ? caughtError.message
               : "Unknown extension error.",
           );
@@ -215,41 +245,32 @@ function App() {
         return;
       }
 
-      try {
-        const response =
-          (await chrome.runtime.sendMessage({
-            type:
-              "SET_CANDIDATE_ID",
+      const response =
+        (await chrome.runtime.sendMessage({
+          type:
+            "SET_CANDIDATE_ID",
 
-            candidateId:
-              normalized,
-          })) as MessageResponse<ExtensionState>;
+          candidateId:
+            normalized,
+        })) as MessageResponse<ExtensionState>;
 
-        if (
-          !response.success ||
-          !response.data
-        ) {
-          throw new Error(
-            response.error ??
-              "Unable to save candidate ID.",
-          );
-        }
-
-        setExtensionState(
-          response.data,
-        );
-
-        setError(undefined);
-      } catch (
-        caughtError
+      if (
+        !response.success ||
+        !response.data
       ) {
         setError(
-          caughtError instanceof
-            Error
-            ? caughtError.message
-            : "Unable to save candidate ID.",
+          response.error ??
+            "Unable to save candidate ID.",
         );
+
+        return;
       }
+
+      setExtensionState(
+        response.data,
+      );
+
+      setError(undefined);
     };
 
   const scanPage =
@@ -277,24 +298,11 @@ function App() {
         setScanResult(
           response.data,
         );
-
-        setMappingResult(
-          undefined,
-        );
-
-        setFillResult(
-          undefined,
-        );
       } catch (
         caughtError
       ) {
-        setScanResult(
-          undefined,
-        );
-
         setError(
-          caughtError instanceof
-            Error
+          caughtError instanceof Error
             ? caughtError.message
             : "Unknown scanning error.",
         );
@@ -342,20 +350,11 @@ function App() {
         setMappingResult(
           response.data,
         );
-
-        setFillResult(
-          undefined,
-        );
       } catch (
         caughtError
       ) {
-        setMappingResult(
-          undefined,
-        );
-
         setError(
-          caughtError instanceof
-            Error
+          caughtError instanceof Error
             ? caughtError.message
             : "Unknown mapping error.",
         );
@@ -377,12 +376,11 @@ function App() {
         return;
       }
 
-      const confirmed =
-        window.confirm(
-          "Fill only safe high-confidence mapped fields on this Workday page? Existing values will not be overwritten.",
-        );
-
-      if (!confirmed) {
+      if (
+        !window.confirm(
+          "Fill safe high-confidence mapped fields? Existing values will not be overwritten.",
+        )
+      ) {
         return;
       }
 
@@ -415,13 +413,8 @@ function App() {
       } catch (
         caughtError
       ) {
-        setFillResult(
-          undefined,
-        );
-
         setError(
-          caughtError instanceof
-            Error
+          caughtError instanceof Error
             ? caughtError.message
             : "Unknown autofill error.",
         );
@@ -432,13 +425,8 @@ function App() {
 
   const scanDynamicSections =
     async (): Promise<void> => {
-      setScanningDynamic(
-        true,
-      );
-
-      setError(
-        undefined,
-      );
+      setScanningDynamic(true);
+      setError(undefined);
 
       try {
         const response =
@@ -453,7 +441,7 @@ function App() {
         ) {
           throw new Error(
             response.error ??
-              "Unable to detect dynamic Workday sections.",
+              "Unable to detect dynamic sections.",
           );
         }
 
@@ -463,58 +451,22 @@ function App() {
       } catch (
         caughtError
       ) {
-        setDynamicResult(
-          undefined,
-        );
-
         setError(
-          caughtError instanceof
-            Error
+          caughtError instanceof Error
             ? caughtError.message
-            : "Unknown dynamic section scanning error.",
+            : "Unable to detect dynamic sections.",
         );
       } finally {
-        setScanningDynamic(
-          false,
-        );
+        setScanningDynamic(false);
       }
     };
 
   const addRepeatableSection =
     async (
-      kind:
-        RepeatableSectionKind,
+      kind: RepeatableSectionKind,
     ): Promise<void> => {
-      const section =
-        dynamicResult?.sections.find(
-          (candidate) =>
-            candidate.kind ===
-            kind,
-        );
-
-      if (!section) {
-        setError(
-          "Repeatable section was not detected.",
-        );
-
-        return;
-      }
-
-      const confirmed =
-        window.confirm(
-          `Add one blank ${section.title} entry to this Workday page?`,
-        );
-
-      if (!confirmed) {
-        return;
-      }
-
       setAddingSection(
         kind,
-      );
-
-      setError(
-        undefined,
       );
 
       try {
@@ -532,15 +484,7 @@ function App() {
         ) {
           throw new Error(
             response.error ??
-              "Unable to add repeatable Workday entry.",
-          );
-        }
-
-        if (
-          !response.data.added
-        ) {
-          throw new Error(
-            response.data.reason,
+              "Unable to add repeatable entry.",
           );
         }
 
@@ -551,10 +495,9 @@ function App() {
         caughtError
       ) {
         setError(
-          caughtError instanceof
-            Error
+          caughtError instanceof Error
             ? caughtError.message
-            : "Unknown repeatable section error.",
+            : "Unable to add repeatable entry.",
         );
       } finally {
         setAddingSection(
@@ -576,12 +519,11 @@ function App() {
         return;
       }
 
-      const confirmed =
-        window.confirm(
-          "Create missing Work Experience and Education entries and fill them from the saved candidate? Existing values will be preserved. Save and Continue will NOT be clicked.",
-        );
-
-      if (!confirmed) {
+      if (
+        !window.confirm(
+          "Create missing Experience/Education entries and fill supported fields? Save and Continue will NOT be clicked.",
+        )
+      ) {
         return;
       }
 
@@ -589,9 +531,7 @@ function App() {
         true,
       );
 
-      setError(
-        undefined,
-      );
+      setError(undefined);
 
       try {
         const response =
@@ -616,32 +556,11 @@ function App() {
         setRepeatableFillResult(
           response.data,
         );
-
-        try {
-          const dynamicResponse =
-            (await chrome.runtime.sendMessage({
-              type:
-                "SCAN_DYNAMIC_SECTIONS",
-            })) as DynamicScanResponse;
-
-          if (
-            dynamicResponse.success &&
-            dynamicResponse.data
-          ) {
-            setDynamicResult(
-              dynamicResponse.data,
-            );
-          }
-        } catch {
-          // The autofill result is still valid
-          // even if this optional refresh fails.
-        }
       } catch (
         caughtError
       ) {
         setError(
-          caughtError instanceof
-            Error
+          caughtError instanceof Error
             ? caughtError.message
             : "Unknown repeatable autofill error.",
         );
@@ -649,6 +568,166 @@ function App() {
         setFillingRepeatable(
           false,
         );
+      }
+    };
+
+  const scanNavigation =
+    async (): Promise<void> => {
+      setScanningNavigation(
+        true,
+      );
+
+      setError(undefined);
+
+      try {
+        const response =
+          (await chrome.runtime.sendMessage({
+            type:
+              "SCAN_WORKDAY_NAVIGATION",
+          })) as NavigationStateResponse;
+
+        if (
+          !response.success ||
+          !response.data
+        ) {
+          throw new Error(
+            response.error ??
+              "Unable to detect Workday navigation.",
+          );
+        }
+
+        setNavigationState(
+          response.data,
+        );
+
+        setNavigationResult(
+          undefined,
+        );
+      } catch (
+        caughtError
+      ) {
+        setError(
+          caughtError instanceof Error
+            ? caughtError.message
+            : "Unable to detect Workday navigation.",
+        );
+      } finally {
+        setScanningNavigation(
+          false,
+        );
+      }
+    };
+
+  const navigateContinue =
+    async (): Promise<void> => {
+      if (
+        navigationState
+          ?.submitDetected
+      ) {
+        setError(
+          "Submit detected. Automatic submission is blocked.",
+        );
+
+        return;
+      }
+
+      const confirmed =
+        window.confirm(
+          "Save this Workday step and continue to the next step?",
+        );
+
+      if (!confirmed) {
+        return;
+      }
+
+      setNavigating(true);
+      setError(undefined);
+
+      try {
+        const response =
+          (await chrome.runtime.sendMessage({
+            type:
+              "NAVIGATE_WORKDAY_CONTINUE",
+          })) as NavigationActionResponse;
+
+        if (
+          !response.success ||
+          !response.data
+        ) {
+          throw new Error(
+            response.error ??
+              "Unable to continue.",
+          );
+        }
+
+        setNavigationResult(
+          response.data,
+        );
+
+        setNavigationState(
+          response.data.state,
+        );
+
+        if (
+          !response.data
+            .navigated
+        ) {
+          setError(
+            response.data.reason,
+          );
+        }
+      } catch (
+        caughtError
+      ) {
+        setError(
+          caughtError instanceof Error
+            ? caughtError.message
+            : "Unable to continue.",
+        );
+      } finally {
+        setNavigating(false);
+      }
+    };
+
+  const navigateBack =
+    async (): Promise<void> => {
+      setNavigating(true);
+      setError(undefined);
+
+      try {
+        const response =
+          (await chrome.runtime.sendMessage({
+            type:
+              "NAVIGATE_WORKDAY_BACK",
+          })) as NavigationActionResponse;
+
+        if (
+          !response.success ||
+          !response.data
+        ) {
+          throw new Error(
+            response.error ??
+              "Unable to navigate back.",
+          );
+        }
+
+        setNavigationResult(
+          response.data,
+        );
+
+        setNavigationState(
+          response.data.state,
+        );
+      } catch (
+        caughtError
+      ) {
+        setError(
+          caughtError instanceof Error
+            ? caughtError.message
+            : "Unable to navigate back.",
+        );
+      } finally {
+        setNavigating(false);
       }
     };
 
@@ -663,6 +742,8 @@ function App() {
     filling ||
     scanningDynamic ||
     fillingRepeatable ||
+    scanningNavigation ||
+    navigating ||
     Boolean(
       addingSection,
     );
@@ -679,8 +760,7 @@ function App() {
         </h1>
 
         <p className="subtitle">
-          Resume-aware Workday
-          application automation.
+          Resume-aware Workday application automation.
         </p>
       </header>
 
@@ -706,8 +786,8 @@ function App() {
 
       <section className="candidate-section">
         <label
-          htmlFor="candidateId"
           className="status-label"
+          htmlFor="candidateId"
         >
           Candidate ID
         </label>
@@ -720,20 +800,20 @@ function App() {
             }
             onChange={(
               event,
-            ) => {
+            ) =>
               setCandidateId(
                 event.target.value,
-              );
-            }}
+              )
+            }
             placeholder="MongoDB candidate ID"
           />
 
           <button
             type="button"
             disabled={busy}
-            onClick={() => {
-              void saveCandidateId();
-            }}
+            onClick={() =>
+              void saveCandidateId()
+            }
           >
             Save
           </button>
@@ -785,16 +865,16 @@ function App() {
                     busy ||
                     !section.canAddAnother
                   }
-                  onClick={() => {
+                  onClick={() =>
                     void addRepeatableSection(
                       section.kind,
-                    );
-                  }}
+                    )
+                  }
                 >
-                  {addingSection ===
-                  section.kind
-                    ? `Adding ${section.title}...`
-                    : `Add ${section.title}`}
+                  Add{" "}
+                  {
+                    section.title
+                  }
                 </button>
               ),
             )}
@@ -822,7 +902,6 @@ function App() {
                   repeatableFillResult.filledCount
                 }
               </strong>
-
               <span>
                 Filled
               </span>
@@ -834,7 +913,6 @@ function App() {
                   repeatableFillResult.skippedCount
                 }
               </strong>
-
               <span>
                 Skipped
               </span>
@@ -846,23 +924,117 @@ function App() {
                   repeatableFillResult.failedCount
                 }
               </strong>
-
               <span>
                 Failed
               </span>
             </div>
           </div>
+        </section>
+      )}
 
-          <p className="mapping-empty">
-            {
-              repeatableFillResult.experienceCount
-            }{" "}
-            experience entries and{" "}
-            {
-              repeatableFillResult.educationCount
-            }{" "}
-            education entries processed.
+      {navigationState && (
+        <section className="fill-summary">
+          <p className="status-label">
+            Workday Navigation
           </p>
+
+          <p className="scan-title">
+            {
+              navigationState.currentStepTitle
+            }
+          </p>
+
+          {navigationState.currentStepIndex &&
+            navigationState.totalSteps && (
+              <p className="mapping-empty">
+                Step{" "}
+                {
+                  navigationState.currentStepIndex
+                }{" "}
+                of{" "}
+                {
+                  navigationState.totalSteps
+                }
+              </p>
+            )}
+
+          <div className="scan-stats">
+            <div>
+              <strong>
+                {navigationState.canGoBack
+                  ? "Yes"
+                  : "No"}
+              </strong>
+              <span>
+                Back
+              </span>
+            </div>
+
+            <div>
+              <strong>
+                {navigationState.canContinue
+                  ? "Yes"
+                  : "No"}
+              </strong>
+              <span>
+                Continue
+              </span>
+            </div>
+
+            <div>
+              <strong>
+                {navigationState.submitDetected
+                  ? "YES"
+                  : "No"}
+              </strong>
+              <span>
+                Submit
+              </span>
+            </div>
+          </div>
+
+          {navigationState.submitDetected && (
+            <p className="error-message">
+              Submit detected. Automatic submission is blocked.
+            </p>
+          )}
+
+          {navigationResult && (
+            <p className="mapping-empty">
+              {
+                navigationResult.reason
+              }
+            </p>
+          )}
+
+          <button
+            type="button"
+            className="secondary-button"
+            disabled={
+              busy ||
+              !navigationState.canGoBack
+            }
+            onClick={() =>
+              void navigateBack()
+            }
+          >
+            Back
+          </button>
+
+          <button
+            type="button"
+            className="repeatable-button"
+            disabled={
+              busy ||
+              !navigationState.canContinue ||
+              navigationState.submitDetected
+            }
+            onClick={() =>
+              void navigateContinue()
+            }
+          >
+            Save & Continue
+          </button>
         </section>
       )}
 
@@ -876,13 +1048,11 @@ function App() {
         className="primary-button"
         type="button"
         disabled={busy}
-        onClick={() => {
-          void refreshState();
-        }}
+        onClick={() =>
+          void refreshState()
+        }
       >
-        {loading
-          ? "Checking..."
-          : "Refresh status"}
+        Refresh status
       </button>
 
       <button
@@ -892,13 +1062,11 @@ function App() {
           busy ||
           !extensionState.workdayDetected
         }
-        onClick={() => {
-          void scanPage();
-        }}
+        onClick={() =>
+          void scanPage()
+        }
       >
-        {scanning
-          ? "Scanning..."
-          : "Scan Workday page"}
+        Scan Workday page
       </button>
 
       <button
@@ -906,16 +1074,13 @@ function App() {
         type="button"
         disabled={
           busy ||
-          !extensionState.workdayDetected ||
           !candidateId.trim()
         }
-        onClick={() => {
-          void mapPage();
-        }}
+        onClick={() =>
+          void mapPage()
+        }
       >
-        {mapping
-          ? "Mapping..."
-          : "Map fields to candidate"}
+        Map fields to candidate
       </button>
 
       <button
@@ -923,32 +1088,24 @@ function App() {
         type="button"
         disabled={
           busy ||
-          !extensionState.workdayDetected ||
           !candidateId.trim()
         }
-        onClick={() => {
-          void autofillPage();
-        }}
+        onClick={() =>
+          void autofillPage()
+        }
       >
-        {filling
-          ? "Autofilling..."
-          : "Autofill safe fields"}
+        Autofill safe fields
       </button>
 
       <button
         className="dynamic-scan-button"
         type="button"
-        disabled={
-          busy ||
-          !extensionState.workdayDetected
+        disabled={busy}
+        onClick={() =>
+          void scanDynamicSections()
         }
-        onClick={() => {
-          void scanDynamicSections();
-        }}
       >
-        {scanningDynamic
-          ? "Detecting sections..."
-          : "Detect dynamic sections"}
+        Detect dynamic sections
       </button>
 
       <button
@@ -956,20 +1113,30 @@ function App() {
         type="button"
         disabled={
           busy ||
-          !extensionState.workdayDetected ||
           !candidateId.trim()
         }
-        onClick={() => {
-          void autofillRepeatable();
-        }}
+        onClick={() =>
+          void autofillRepeatable()
+        }
       >
-        {fillingRepeatable
-          ? "Filling Experience & Education..."
-          : "Autofill Experience & Education"}
+        Autofill Experience & Education
+      </button>
+
+      <button
+        className="secondary-button"
+        type="button"
+        disabled={busy}
+        onClick={() =>
+          void scanNavigation()
+        }
+      >
+        {scanningNavigation
+          ? "Detecting navigation..."
+          : "Detect navigation"}
       </button>
 
       <footer className="popup-footer">
-        Phase 9 · Dynamic & Repeatable Sections
+        Phase 10 · Multi-Step Navigator
       </footer>
     </main>
   );
