@@ -37,6 +37,10 @@ import type {
 } from "../types/messages";
 
 import {
+  validateWorkdayPage,
+} from "../validation/workday-validator";
+
+import {
   isWorkdayPage,
 } from "../workday/workday-detector";
 
@@ -373,6 +377,36 @@ chrome.runtime.onMessage.addListener(
             error instanceof Error
               ? error.message
               : "Unable to scan Workday questions.",
+        });
+      }
+
+      return false;
+    }
+
+    if (
+      message.type ===
+      "RUN_VALIDATION_SCAN"
+    ) {
+      try {
+        const result =
+          validateWorkdayPage();
+
+        console.log(
+          "Workday validation scan completed:",
+          result,
+        );
+
+        sendResponse({
+          success: true,
+          data: result,
+        });
+      } catch (error) {
+        sendResponse({
+          success: false,
+          error:
+            error instanceof Error
+              ? error.message
+              : "Unable to validate the current Workday step.",
         });
       }
 

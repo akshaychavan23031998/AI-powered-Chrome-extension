@@ -29,6 +29,7 @@ import type {
   QuestionScanResponse,
   RepeatableAutofillResponse,
   ScanResponse,
+  ValidationResponse,
 } from "../types/messages";
 
 console.log(
@@ -59,9 +60,7 @@ const getActiveTab =
   };
 
 const isWorkdayUrl = (
-  url:
-    | string
-    | undefined,
+  url: string | undefined,
 ): boolean => {
   if (!url) {
     return false;
@@ -621,6 +620,55 @@ const scanQuestionsOnActiveTab =
     }
   };
 
+const validateActiveTab =
+  async (): Promise<ValidationResponse> => {
+    const tab =
+      await getActiveTab();
+
+    if (!tab?.id) {
+      return {
+        success: false,
+        error:
+          "No active browser tab found.",
+      };
+    }
+
+    if (
+      !isWorkdayUrl(
+        tab.url,
+      )
+    ) {
+      return {
+        success: false,
+        error:
+          "Open a Workday page before validating.",
+      };
+    }
+
+    try {
+      return (
+        await chrome.tabs.sendMessage(
+          tab.id,
+          {
+            type:
+              "RUN_VALIDATION_SCAN",
+          },
+        )
+      ) as ValidationResponse;
+    } catch (error) {
+      console.error(
+        "Unable to validate Workday page:",
+        error,
+      );
+
+      return {
+        success: false,
+        error:
+          "Unable to validate this Workday step. Refresh the page and try again.",
+      };
+    }
+  };
+
 chrome.runtime.onMessage.addListener(
   (
     message:
@@ -833,6 +881,17 @@ chrome.runtime.onMessage.addListener(
       "SCAN_WORKDAY_QUESTIONS"
     ) {
       void scanQuestionsOnActiveTab().then(
+        sendResponse,
+      );
+
+      return true;
+    }
+
+    if (
+      message.type ===
+      "VALIDATE_WORKDAY_STEP"
+    ) {
+      void validateActiveTab().then(
         sendResponse,
       );
 

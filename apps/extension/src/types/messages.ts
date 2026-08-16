@@ -34,6 +34,10 @@ import type {
   RepeatableAutofillResult,
 } from "./repeatable-fill";
 
+import type {
+  WorkdayValidationResult,
+} from "./validation";
+
 export type ExtensionMessage =
   | {
       type: "PING";
@@ -115,6 +119,12 @@ export type ExtensionMessage =
     }
   | {
       type: "RUN_QUESTION_SCAN";
+    }
+  | {
+      type: "VALIDATE_WORKDAY_STEP";
+    }
+  | {
+      type: "RUN_VALIDATION_SCAN";
     };
 
 export interface MessageResponse<T = unknown> {
@@ -149,3 +159,6 @@ export type NavigationActionResponse =
 
 export type QuestionScanResponse =
   MessageResponse<QuestionScanResult>;
+
+export type ValidationResponse =
+  MessageResponse<WorkdayValidationResult>;

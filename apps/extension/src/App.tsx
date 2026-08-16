@@ -51,6 +51,7 @@ import type {
   QuestionScanResponse,
   RepeatableAutofillResponse,
   ScanResponse,
+  ValidationResponse,
 } from "./types/messages";
 
 import type {
@@ -70,6 +71,10 @@ import type {
 import type {
   RepeatableAutofillResult,
 } from "./types/repeatable-fill";
+
+import type {
+  WorkdayValidationResult,
+} from "./types/validation";
 
 const initialState: ExtensionState = {
   backendConnected: false,
@@ -146,6 +151,13 @@ function App() {
   >();
 
   const [
+    validationResult,
+    setValidationResult,
+  ] = useState<
+    WorkdayValidationResult | undefined
+  >();
+
+  const [
     loading,
     setLoading,
   ] = useState(true);
@@ -183,6 +195,11 @@ function App() {
   const [
     scanningQuestions,
     setScanningQuestions,
+  ] = useState(false);
+
+  const [
+    validating,
+    setValidating,
   ] = useState(false);
 
   const [
@@ -640,6 +657,46 @@ function App() {
       }
     };
 
+  const validateCurrentStep =
+    async (): Promise<void> => {
+      setValidating(
+        true,
+      );
+
+      setError(undefined);
+
+      try {
+        const response =
+          (await chrome.runtime.sendMessage({
+            type: "VALIDATE_WORKDAY_STEP",
+          })) as ValidationResponse;
+
+        if (
+          !response.success ||
+          !response.data
+        ) {
+          throw new Error(
+            response.error ??
+              "Unable to validate the current Workday step.",
+          );
+        }
+
+        setValidationResult(
+          response.data,
+        );
+      } catch (caughtError) {
+        setError(
+          caughtError instanceof Error
+            ? caughtError.message
+            : "Unable to validate Workday step.",
+        );
+      } finally {
+        setValidating(
+          false,
+        );
+      }
+    };
+
   const navigateContinue =
     async (): Promise<void> => {
       if (
@@ -655,7 +712,7 @@ function App() {
 
       const confirmed =
         window.confirm(
-          "Save this Workday step and continue to the next step?",
+          "Validate this Workday step, save it, and continue to the next step?",
         );
 
       if (!confirmed) {
@@ -695,6 +752,8 @@ function App() {
           setError(
             response.data.reason,
           );
+
+          await validateCurrentStep();
         }
       } catch (caughtError) {
         setError(
@@ -759,6 +818,7 @@ function App() {
     fillingRepeatable ||
     scanningNavigation ||
     scanningQuestions ||
+    validating ||
     navigating ||
     Boolean(
       addingSection,
@@ -1160,6 +1220,98 @@ function App() {
         </section>
       )}
 
+      {validationResult && (
+        <section className="fill-summary">
+          <p className="status-label">
+            Step Validation
+          </p>
+
+          <p className="scan-title">
+            {validationResult.valid
+              ? "Current step looks valid"
+              : `${validationResult.errorCount} validation error(s) detected`}
+          </p>
+
+          <div className="scan-stats">
+            <div>
+              <strong>
+                {validationResult.valid
+                  ? "YES"
+                  : "NO"}
+              </strong>
+
+              <span>
+                Valid
+              </span>
+            </div>
+
+            <div>
+              <strong>
+                {
+                  validationResult.errorCount
+                }
+              </strong>
+
+              <span>
+                Errors
+              </span>
+            </div>
+
+            <div>
+              <strong>
+                {
+                  validationResult.warningCount
+                }
+              </strong>
+
+              <span>
+                Warnings
+              </span>
+            </div>
+          </div>
+
+          {validationResult.issues.map(
+            (
+              issue,
+              index,
+            ) => (
+              <div
+                key={`${issue.id}-${index}`}
+                className="mapping-empty"
+              >
+                <strong>
+                  {issue.severity ===
+                  "error"
+                    ? "Validation Error"
+                    : "Warning"}
+                </strong>
+
+                {issue.label && (
+                  <div>
+                    {
+                      issue.label
+                    }
+                  </div>
+                )}
+
+                <div>
+                  {
+                    issue.message
+                  }
+                </div>
+
+                <div>
+                  Type:{" "}
+                  {
+                    issue.type
+                  }
+                </div>
+              </div>
+            ),
+          )}
+        </section>
+      )}
+
       {error && (
         <div className="error-message">
           {error}
@@ -1273,8 +1425,24 @@ function App() {
           : "Detect Questions"}
       </button>
 
+      <button
+        className="secondary-button"
+        type="button"
+        disabled={
+          busy ||
+          !extensionState.workdayDetected
+        }
+        onClick={() =>
+          void validateCurrentStep()
+        }
+      >
+        {validating
+          ? "Validating..."
+          : "Validate Current Step"}
+      </button>
+
       <footer className="popup-footer">
-        Phase 11 · Question Intelligence
+        Phase 12 · Validation & Error Recovery
       </footer>
     </main>
   );

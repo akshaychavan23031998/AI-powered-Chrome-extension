@@ -3,10 +3,18 @@ import {
   waitForDomMutation,
 } from "../dynamic/mutation-waiter";
 
+import {
+  recoverAfterWorkdayAction,
+} from "../recovery/workday-error-recovery";
+
 import type {
   WorkdayNavigationResult,
   WorkdayNavigationState,
 } from "../types/navigation";
+
+import {
+  validateWorkdayPage,
+} from "../validation/workday-validator";
 
 import {
   scanWorkdayNavigationState,
@@ -150,20 +158,6 @@ const waitForStableNavigationState =
 
     oldUrl: string,
   ): Promise<WorkdayNavigationState> => {
-    /*
-     * Workday is a React application.
-     *
-     * The first DOM mutation does not necessarily mean
-     * that the next application step has finished rendering.
-     *
-     * Wait until:
-     *
-     * 1. URL changes, OR
-     * 2. detected step changes,
-     *
-     * and then additionally wait until the detector no
-     * longer reports "unknown".
-     */
     await waitForCondition(
       () => {
         const state =
@@ -198,10 +192,6 @@ const waitForStableNavigationState =
       200,
     );
 
-    /*
-     * Small settle delay so Workday can finish
-     * rendering buttons/progress indicators.
-     */
     await sleep(
       250,
     );
@@ -209,17 +199,32 @@ const waitForStableNavigationState =
     return scanWorkdayNavigationState();
   };
 
+const hasNavigationChanged = (
+  previous:
+    WorkdayNavigationState,
+
+  oldUrl: string,
+): boolean => {
+  const current =
+    scanWorkdayNavigationState();
+
+  return (
+    window.location.href !==
+      oldUrl ||
+    (
+      current.currentStep !==
+        previous.currentStep &&
+      current.currentStep !==
+        "unknown"
+    )
+  );
+};
+
 export const navigateWorkdayContinue =
   async (): Promise<WorkdayNavigationResult> => {
     const previous =
       scanWorkdayNavigationState();
 
-    /*
-     * Submit is intentionally blocked here.
-     *
-     * Final submission must always remain a separate,
-     * explicit user-confirmed action.
-     */
     if (
       previous.submitDetected
     ) {
@@ -229,6 +234,26 @@ export const navigateWorkdayContinue =
         previous,
 
         "Submit button detected. Automatic submit is blocked.",
+      );
+    }
+
+    /*
+     * Phase 12:
+     * Validate the current Workday step before attempting
+     * Save & Continue.
+     */
+    const validation =
+      validateWorkdayPage();
+
+    if (
+      !validation.valid
+    ) {
+      return buildFailureResult(
+        "continue",
+
+        previous,
+
+        `Navigation blocked because ${validation.errorCount} validation error(s) were detected on the current Workday step.`,
       );
     }
 
@@ -281,30 +306,49 @@ export const navigateWorkdayContinue =
       block: "center",
     });
 
+    /*
+     * Important:
+     * Click exactly once.
+     *
+     * Recovery retries below only check whether Workday
+     * completed the transition. They never click again.
+     */
     button.click();
 
     await mutationPromise;
 
-    const pageChanged =
-      await waitForCondition(
-        () => {
-          const state =
-            scanWorkdayNavigationState();
-
-          return (
-            window.location.href !==
-              oldUrl ||
-            state.currentStep !==
-              previous.currentStep
+    const recovery =
+      await recoverAfterWorkdayAction(
+        async () => {
+          return hasNavigationChanged(
+            previous,
+            oldUrl,
           );
         },
-        10000,
-        200,
+
+        {
+          attempts: 3,
+          delayMs: 450,
+          backoffMultiplier:
+            1.5,
+          waitForDomMs:
+            2500,
+        },
       );
 
-    if (!pageChanged) {
+    if (
+      !recovery.success
+    ) {
       const current =
         scanWorkdayNavigationState();
+
+      const postClickValidation =
+        validateWorkdayPage();
+
+      const reason =
+        postClickValidation.valid
+          ? recovery.finalMessage
+          : `Workday blocked navigation with ${postClickValidation.errorCount} validation error(s).`;
 
       return {
         action:
@@ -319,8 +363,7 @@ export const navigateWorkdayContinue =
         currentStep:
           current.currentStep,
 
-        reason:
-          "Workday did not confirm navigation. Validation errors may be blocking the page.",
+        reason,
 
         state:
           current,
@@ -419,24 +462,28 @@ export const navigateWorkdayBack =
 
     await mutationPromise;
 
-    const pageChanged =
-      await waitForCondition(
-        () => {
-          const state =
-            scanWorkdayNavigationState();
-
-          return (
-            window.location.href !==
-              oldUrl ||
-            state.currentStep !==
-              previous.currentStep
+    const recovery =
+      await recoverAfterWorkdayAction(
+        async () => {
+          return hasNavigationChanged(
+            previous,
+            oldUrl,
           );
         },
-        10000,
-        200,
+
+        {
+          attempts: 3,
+          delayMs: 350,
+          backoffMultiplier:
+            1.5,
+          waitForDomMs:
+            2000,
+        },
       );
 
-    if (!pageChanged) {
+    if (
+      !recovery.success
+    ) {
       const current =
         scanWorkdayNavigationState();
 
@@ -454,7 +501,7 @@ export const navigateWorkdayBack =
           current.currentStep,
 
         reason:
-          "Workday did not confirm back navigation.",
+          recovery.finalMessage,
 
         state:
           current,

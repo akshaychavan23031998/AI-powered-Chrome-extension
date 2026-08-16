@@ -53,7 +53,9 @@ const inferStepKind = (
   text: string,
 ): WorkdayStepKind => {
   const value =
-    normalize(text);
+    normalize(
+      text,
+    );
 
   if (
     value.includes(
@@ -137,6 +139,16 @@ const getStepTitle = (
   }
 };
 
+const knownSteps:
+  WorkdayStepKind[] = [
+    "myInformation",
+    "myExperience",
+    "applicationQuestions",
+    "voluntaryDisclosures",
+    "selfIdentify",
+    "review",
+  ];
+
 const getButtonText = (
   element: HTMLElement,
 ): string => {
@@ -207,7 +219,8 @@ const detectCurrentStepFromHeadings =
       );
 
     for (
-      const element of candidates
+      const element of
+        candidates
     ) {
       const kind =
         inferStepKind(
@@ -217,7 +230,8 @@ const detectCurrentStepFromHeadings =
         );
 
       if (
-        kind !== "unknown"
+        kind !==
+        "unknown"
       ) {
         return kind;
       }
@@ -226,88 +240,277 @@ const detectCurrentStepFromHeadings =
     return "unknown";
   };
 
-const detectStepsFromPage =
-  (): WorkdayStepDescriptor[] => {
-    const pageText =
+interface ProgressMetadata {
+  currentIndex?: number;
+  totalSteps?: number;
+}
+
+const collectProgressCorpus =
+  (): string => {
+    const values =
+      new Set<string>();
+
+    const bodyInnerText =
       cleanText(
-        document.body?.innerText,
+        document.body
+          ?.innerText,
       );
 
-    const knownSteps:
-      WorkdayStepKind[] = [
-        "myInformation",
-        "myExperience",
-        "applicationQuestions",
-        "voluntaryDisclosures",
-        "selfIdentify",
-        "review",
-      ];
+    const bodyTextContent =
+      cleanText(
+        document.body
+          ?.textContent,
+      );
 
-    const currentStep =
-      detectCurrentStepFromHeadings();
+    if (
+      bodyInnerText
+    ) {
+      values.add(
+        bodyInnerText,
+      );
+    }
 
-    const descriptors:
-      WorkdayStepDescriptor[] =
-      [];
+    if (
+      bodyTextContent
+    ) {
+      values.add(
+        bodyTextContent,
+      );
+    }
 
-    let detectedIndex =
-      0;
+    const accessibleElements =
+      Array.from(
+        document.querySelectorAll<HTMLElement>(
+          [
+            "[aria-label]",
+            "[aria-current]",
+            "[role='listitem']",
+            "[role='tab']",
+            "[role='status']",
+            "[data-automation-id]",
+          ].join(","),
+        ),
+      );
 
     for (
-      const kind of knownSteps
+      const element of
+        accessibleElements
     ) {
-      const title =
-        getStepTitle(
-          kind,
+      const ariaLabel =
+        cleanText(
+          element.getAttribute(
+            "aria-label",
+          ),
         );
 
       if (
-        !normalize(
-          pageText,
-        ).includes(
-          normalize(
-            title,
-          ),
-        )
+        ariaLabel
       ) {
-        continue;
+        values.add(
+          ariaLabel,
+        );
       }
 
-      detectedIndex += 1;
+      const text =
+        cleanText(
+          element.textContent,
+        );
 
-      descriptors.push({
-        kind,
-
-        title,
-
-        index:
-          detectedIndex,
-
-        isCurrent:
-          kind ===
-          currentStep,
-
-        isCompleted:
-          currentStep !==
-            "unknown" &&
-          detectedIndex <
-            knownSteps.indexOf(
-              currentStep,
-            ) +
-              1,
-      });
+      if (
+        text
+      ) {
+        values.add(
+          text,
+        );
+      }
     }
 
-    const total =
-      descriptors.length;
+    return Array.from(
+      values,
+    ).join(" ");
+  };
 
-    return descriptors.map(
-      (step) => ({
-        ...step,
+const detectProgressMetadata =
+  (): ProgressMetadata => {
+    const corpus =
+      normalize(
+        collectProgressCorpus(),
+      );
+
+    const currentMatch =
+      corpus.match(
+        /current\s+step\s+(\d+)\s+of\s+(\d+)/i,
+      );
+
+    if (
+      currentMatch
+    ) {
+      return {
+        currentIndex:
+          Number(
+            currentMatch[1],
+          ),
 
         totalSteps:
-          total,
-      }),
+          Number(
+            currentMatch[2],
+          ),
+      };
+    }
+
+    const genericMatches =
+      Array.from(
+        corpus.matchAll(
+          /(?:completed\s+)?step\s+(\d+)\s+of\s+(\d+)/gi,
+        ),
+      );
+
+    if (
+      genericMatches.length >
+      0
+    ) {
+      const totals =
+        genericMatches
+          .map(
+            (match) =>
+              Number(
+                match[2],
+              ),
+          )
+          .filter(
+            (value) =>
+              Number.isFinite(
+                value,
+              ) &&
+              value > 0,
+          );
+
+      const totalSteps =
+        totals.length > 0
+          ? Math.max(
+              ...totals,
+            )
+          : undefined;
+
+      return {
+        totalSteps,
+      };
+    }
+
+    return {};
+  };
+
+const detectStepKindsFromCorpus =
+  (): WorkdayStepKind[] => {
+    const corpus =
+      normalize(
+        collectProgressCorpus(),
+      );
+
+    return knownSteps.filter(
+      (kind) =>
+        corpus.includes(
+          normalize(
+            getStepTitle(
+              kind,
+            ),
+          ),
+        ),
+    );
+  };
+
+const detectStepsFromPage =
+  (
+    currentStep:
+      WorkdayStepKind,
+
+    progress:
+      ProgressMetadata,
+  ): WorkdayStepDescriptor[] => {
+    const detectedKinds =
+      detectStepKindsFromCorpus();
+
+    /*
+     * Prefer the labels Workday actually exposes.
+     */
+    let stepKinds =
+      detectedKinds;
+
+    /*
+     * On some Workday tenants, only the active step label
+     * is visually rendered while the progress component
+     * exposes "current step X of Y" through accessibility
+     * metadata.
+     *
+     * When the declared total matches our supported standard
+     * six-step Workday flow, use that canonical order.
+     */
+    if (
+      progress.totalSteps ===
+        knownSteps.length &&
+      detectedKinds.length <
+        progress.totalSteps
+    ) {
+      stepKinds =
+        [...knownSteps];
+    }
+
+    /*
+     * Absolute fallback: never return an empty descriptor list
+     * when the current step itself was detected.
+     */
+    if (
+      stepKinds.length === 0 &&
+      currentStep !==
+        "unknown"
+    ) {
+      stepKinds = [
+        currentStep,
+      ];
+    }
+
+    return stepKinds.map(
+      (
+        kind,
+        arrayIndex,
+      ) => {
+        const index =
+          arrayIndex + 1;
+
+        return {
+          kind,
+
+          title:
+            getStepTitle(
+              kind,
+            ),
+
+          index,
+
+          totalSteps:
+            progress.totalSteps ??
+            stepKinds.length,
+
+          isCurrent:
+            kind ===
+            currentStep,
+
+          isCompleted:
+            currentStep !==
+              "unknown" &&
+            (
+              progress.currentIndex
+                ? index <
+                  progress.currentIndex
+                : knownSteps.indexOf(
+                    kind,
+                  ) <
+                  knownSteps.indexOf(
+                    currentStep,
+                  )
+            ),
+        };
+      },
     );
   };
 
@@ -316,8 +519,14 @@ export const scanWorkdayNavigationState =
     const currentStep =
       detectCurrentStepFromHeadings();
 
+    const progress =
+      detectProgressMetadata();
+
     const steps =
-      detectStepsFromPage();
+      detectStepsFromPage(
+        currentStep,
+        progress,
+      );
 
     const currentDescriptor =
       steps.find(
@@ -363,12 +572,18 @@ export const scanWorkdayNavigationState =
         ),
 
       currentStepIndex:
+        progress.currentIndex ??
         currentDescriptor
           ?.index,
 
       totalSteps:
-        steps.length ||
-        undefined,
+        progress.totalSteps ??
+        (
+          steps.length >
+            1
+            ? steps.length
+            : undefined
+        ),
 
       steps,
 
