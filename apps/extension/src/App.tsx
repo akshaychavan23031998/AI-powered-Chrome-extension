@@ -5,6 +5,10 @@ import {
 } from "react";
 
 import {
+  FillSummary,
+} from "./components/FillSummary";
+
+import {
   MappingSummary,
 } from "./components/MappingSummary";
 
@@ -25,10 +29,15 @@ import type {
 } from "./types/extension-state";
 
 import type {
+  AutofillResult,
+} from "./types/fill";
+
+import type {
   FieldMappingResult,
 } from "./types/mapping";
 
 import type {
+  AutofillResponse,
   MappingResponse,
   MessageResponse,
   ScanResponse,
@@ -72,6 +81,14 @@ function App() {
     >();
 
   const [
+    fillResult,
+    setFillResult,
+  ] =
+    useState<
+      AutofillResult | undefined
+    >();
+
+  const [
     loading,
     setLoading,
   ] =
@@ -86,6 +103,12 @@ function App() {
   const [
     mapping,
     setMapping,
+  ] =
+    useState(false);
+
+  const [
+    filling,
+    setFilling,
   ] =
     useState(false);
 
@@ -131,7 +154,8 @@ function App() {
           caughtError
         ) {
           setError(
-            caughtError instanceof Error
+            caughtError instanceof
+              Error
               ? caughtError.message
               : "Unknown extension error.",
           );
@@ -184,7 +208,8 @@ function App() {
         caughtError
       ) {
         setError(
-          caughtError instanceof Error
+          caughtError instanceof
+            Error
             ? caughtError.message
             : "Unable to save candidate ID.",
         );
@@ -220,6 +245,10 @@ function App() {
         setMappingResult(
           undefined,
         );
+
+        setFillResult(
+          undefined,
+        );
       } catch (
         caughtError
       ) {
@@ -228,7 +257,8 @@ function App() {
         );
 
         setError(
-          caughtError instanceof Error
+          caughtError instanceof
+            Error
             ? caughtError.message
             : "Unknown scanning error.",
         );
@@ -276,6 +306,10 @@ function App() {
         setMappingResult(
           response.data,
         );
+
+        setFillResult(
+          undefined,
+        );
       } catch (
         caughtError
       ) {
@@ -284,7 +318,8 @@ function App() {
         );
 
         setError(
-          caughtError instanceof Error
+          caughtError instanceof
+            Error
             ? caughtError.message
             : "Unknown mapping error.",
         );
@@ -293,9 +328,81 @@ function App() {
       }
     };
 
+  const autofillPage =
+    async (): Promise<void> => {
+      const id =
+        candidateId.trim();
+
+      if (!id) {
+        setError(
+          "Enter and save a candidate ID first.",
+        );
+
+        return;
+      }
+
+      const confirmed =
+        window.confirm(
+          "Fill only safe high-confidence mapped fields on this Workday page? Existing values will not be overwritten.",
+        );
+
+      if (!confirmed) {
+        return;
+      }
+
+      setFilling(true);
+      setError(undefined);
+
+      try {
+        const response =
+          (await chrome.runtime.sendMessage({
+            type:
+              "AUTOFILL_WORKDAY_FIELDS",
+
+            candidateId:
+              id,
+          })) as AutofillResponse;
+
+        if (
+          !response.success ||
+          !response.data
+        ) {
+          throw new Error(
+            response.error ??
+              "Unable to autofill Workday fields.",
+          );
+        }
+
+        setFillResult(
+          response.data,
+        );
+      } catch (
+        caughtError
+      ) {
+        setFillResult(
+          undefined,
+        );
+
+        setError(
+          caughtError instanceof
+            Error
+            ? caughtError.message
+            : "Unknown autofill error.",
+        );
+      } finally {
+        setFilling(false);
+      }
+    };
+
   useEffect(() => {
     void refreshState();
   }, [refreshState]);
+
+  const busy =
+    loading ||
+    scanning ||
+    mapping ||
+    filling;
 
   return (
     <main className="popup">
@@ -360,6 +467,7 @@ function App() {
 
           <button
             type="button"
+            disabled={busy}
             onClick={() => {
               void saveCandidateId();
             }}
@@ -385,6 +493,14 @@ function App() {
         />
       )}
 
+      {fillResult && (
+        <FillSummary
+          result={
+            fillResult
+          }
+        />
+      )}
+
       {error && (
         <div className="error-message">
           {error}
@@ -394,11 +510,7 @@ function App() {
       <button
         className="primary-button"
         type="button"
-        disabled={
-          loading ||
-          scanning ||
-          mapping
-        }
+        disabled={busy}
         onClick={() => {
           void refreshState();
         }}
@@ -412,7 +524,7 @@ function App() {
         className="secondary-button"
         type="button"
         disabled={
-          scanning ||
+          busy ||
           !extensionState.workdayDetected
         }
         onClick={() => {
@@ -428,7 +540,7 @@ function App() {
         className="secondary-button"
         type="button"
         disabled={
-          mapping ||
+          busy ||
           !extensionState.workdayDetected ||
           !candidateId.trim()
         }
@@ -441,8 +553,25 @@ function App() {
           : "Map fields to candidate"}
       </button>
 
+      <button
+        className="autofill-button"
+        type="button"
+        disabled={
+          busy ||
+          !extensionState.workdayDetected ||
+          !candidateId.trim()
+        }
+        onClick={() => {
+          void autofillPage();
+        }}
+      >
+        {filling
+          ? "Autofilling..."
+          : "Autofill safe fields"}
+      </button>
+
       <footer className="popup-footer">
-        Phase 7 · Semantic Field Mapping
+        Phase 8 · Safe Autofill Engine
       </footer>
     </main>
   );

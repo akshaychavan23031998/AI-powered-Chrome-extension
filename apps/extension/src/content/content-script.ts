@@ -1,3 +1,7 @@
+import {
+  runAutofill,
+} from "../filler/autofill-engine";
+
 import type {
   ExtensionMessage,
   MessageResponse,
@@ -18,7 +22,9 @@ const notifyWorkdayDetection =
 
     try {
       await chrome.runtime.sendMessage({
-        type: "WORKDAY_DETECTED",
+        type:
+          "WORKDAY_DETECTED",
+
         detected,
       });
     } catch (error) {
@@ -37,11 +43,15 @@ void notifyWorkdayDetection();
 
 chrome.runtime.onMessage.addListener(
   (
-    message: ExtensionMessage,
+    message:
+      ExtensionMessage,
+
     _sender:
       chrome.runtime.MessageSender,
+
     sendResponse: (
-      response: MessageResponse,
+      response:
+        MessageResponse,
     ) => void,
   ) => {
     if (
@@ -87,13 +97,52 @@ chrome.runtime.onMessage.addListener(
           success: false,
 
           error:
-            error instanceof Error
+            error instanceof
+              Error
               ? error.message
               : "Unknown DOM scanning error.",
         });
       }
 
       return false;
+    }
+
+    if (
+      message.type ===
+      "RUN_AUTOFILL"
+    ) {
+      void runAutofill(
+        message.instructions,
+      )
+        .then((result) => {
+          console.log(
+            "Workday autofill completed:",
+            result,
+          );
+
+          sendResponse({
+            success: true,
+            data: result,
+          });
+        })
+        .catch((error) => {
+          console.error(
+            "Workday autofill failed:",
+            error,
+          );
+
+          sendResponse({
+            success: false,
+
+            error:
+              error instanceof
+                Error
+                ? error.message
+                : "Unknown autofill error.",
+          });
+        });
+
+      return true;
     }
 
     return false;

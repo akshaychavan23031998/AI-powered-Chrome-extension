@@ -141,30 +141,43 @@ h1 {
   opacity: 0.65;
 }
 
-.secondary-button {
+.secondary-button,
+.autofill-button {
   width: 100%;
 
   margin-top: 10px;
   padding: 12px;
 
-  border: 1px solid #475569;
   border-radius: 10px;
 
   cursor: pointer;
 
   font-weight: 700;
+}
+
+.secondary-button {
+  border: 1px solid #475569;
 
   background: transparent;
   color: #e2e8f0;
 }
 
-.secondary-button:disabled {
+.autofill-button {
+  border: 0;
+
+  background: #22c55e;
+  color: #052e16;
+}
+
+.secondary-button:disabled,
+.autofill-button:disabled {
   cursor: not-allowed;
   opacity: 0.45;
 }
 
 .scan-summary,
 .mapping-summary,
+.fill-summary,
 .candidate-section {
   margin-top: 14px;
   padding: 14px;
@@ -271,7 +284,13 @@ h1 {
   background: #475569;
 }
 
-.mapping-list {
+.candidate-input-row button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.mapping-list,
+.fill-list {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -279,7 +298,8 @@ h1 {
   margin-top: 12px;
 }
 
-.mapping-row {
+.mapping-row,
+.fill-row {
   display: flex;
   justify-content: space-between;
   gap: 8px;
@@ -293,7 +313,8 @@ h1 {
   background: #0f172a;
 }
 
-.mapping-row span {
+.mapping-row span,
+.fill-row span {
   min-width: 0;
   overflow: hidden;
 
@@ -309,6 +330,33 @@ h1 {
   color: #38bdf8;
 }
 
+.mapping-empty {
+  margin: 12px 0 0;
+
+  font-size: 11px;
+  line-height: 1.5;
+
+  color: #94a3b8;
+}
+
+.fill-status {
+  flex-shrink: 0;
+
+  text-transform: capitalize;
+}
+
+.fill-status-filled {
+  color: #22c55e;
+}
+
+.fill-status-skipped {
+  color: #f59e0b;
+}
+
+.fill-status-failed {
+  color: #ef4444;
+}
+
 .popup-footer {
   margin-top: 24px;
 
@@ -317,13 +365,4 @@ h1 {
   font-size: 11px;
 
   color: #64748b;
-}
-
-.mapping-empty {
-  margin: 12px 0 0;
-
-  font-size: 11px;
-  line-height: 1.5;
-
-  color: #94a3b8;
 }

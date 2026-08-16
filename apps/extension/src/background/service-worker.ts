@@ -10,6 +10,11 @@ import {
 } from "../lib/storage";
 
 import type {
+  FillInstruction,
+} from "../types/fill";
+
+import type {
+  AutofillResponse,
   ExtensionMessage,
   MappingResponse,
   MessageResponse,
@@ -25,7 +30,7 @@ chrome.runtime.onInstalled.addListener(
     void resetExtensionState();
 
     console.log(
-      "Workday AI Assistant installed.",
+      "Workday AI Assistant installed or updated.",
     );
   },
 );
@@ -43,6 +48,25 @@ const getActiveTab =
     return tabs[0];
   };
 
+const isWorkdayUrl = (
+  url:
+    | string
+    | undefined,
+): boolean => {
+  if (!url) {
+    return false;
+  }
+
+  return (
+    url.includes(
+      "myworkdayjobs.com",
+    ) ||
+    url.includes(
+      "workday.com",
+    )
+  );
+};
+
 const scanActiveTab =
   async (): Promise<ScanResponse> => {
     const tab =
@@ -51,24 +75,20 @@ const scanActiveTab =
     if (!tab?.id) {
       return {
         success: false,
+
         error:
           "No active browser tab found.",
       };
     }
 
     if (
-      !tab.url ||
-      !(
-        tab.url.includes(
-          "myworkdayjobs.com",
-        ) ||
-        tab.url.includes(
-          "workday.com",
-        )
+      !isWorkdayUrl(
+        tab.url,
       )
     ) {
       return {
         success: false,
+
         error:
           "Open a Workday page before scanning.",
       };
@@ -92,6 +112,7 @@ const scanActiveTab =
 
       return {
         success: false,
+
         error:
           "Unable to scan this Workday page. Refresh the page and try again.",
       };
@@ -100,7 +121,8 @@ const scanActiveTab =
 
 const mapActiveTab =
   async (
-    candidateId: string,
+    candidateId:
+      string,
   ): Promise<MappingResponse> => {
     const scan =
       await scanActiveTab();
@@ -111,6 +133,7 @@ const mapActiveTab =
     ) {
       return {
         success: false,
+
         error:
           scan.error ??
           "Unable to scan Workday fields.",
@@ -126,16 +149,201 @@ const mapActiveTab =
 
       return {
         success: true,
+
         data:
           mappingResult,
       };
     } catch (error) {
       return {
         success: false,
+
         error:
-          error instanceof Error
+          error instanceof
+            Error
             ? error.message
             : "Unable to map Workday fields.",
+      };
+    }
+  };
+
+const autofillActiveTab =
+  async (
+    candidateId:
+      string,
+  ): Promise<AutofillResponse> => {
+    const tab =
+      await getActiveTab();
+
+    if (!tab?.id) {
+      return {
+        success: false,
+
+        error:
+          "No active browser tab found.",
+      };
+    }
+
+    if (
+      !isWorkdayUrl(
+        tab.url,
+      )
+    ) {
+      return {
+        success: false,
+
+        error:
+          "Open a Workday page before autofilling.",
+      };
+    }
+
+    const scan =
+      await scanActiveTab();
+
+    if (
+      !scan.success ||
+      !scan.data
+    ) {
+      return {
+        success: false,
+
+        error:
+          scan.error ??
+          "Unable to scan Workday fields.",
+      };
+    }
+
+    let mappingResult;
+
+    try {
+      mappingResult =
+        await mapFields(
+          candidateId,
+          scan.data.fields,
+        );
+    } catch (error) {
+      return {
+        success: false,
+
+        error:
+          error instanceof
+            Error
+            ? error.message
+            : "Unable to map Workday fields.",
+      };
+    }
+
+    const fieldsById =
+      new Map(
+        scan.data.fields.map(
+          (field) => [
+            field.id,
+            field,
+          ],
+        ),
+      );
+
+    const instructions:
+      FillInstruction[] =
+      mappingResult.mappings
+        .filter((mapping) => {
+          return (
+            mapping.shouldFill &&
+            Boolean(
+              mapping.targetPath,
+            ) &&
+            Boolean(
+              mapping.value,
+            ) &&
+            mapping.confidence >=
+              0.9
+          );
+        })
+        .flatMap(
+          (mapping) => {
+            const field =
+              fieldsById.get(
+                mapping.fieldId,
+              );
+
+            if (
+              !field ||
+              !mapping.targetPath ||
+              !mapping.value
+            ) {
+              return [];
+            }
+
+            return [
+              {
+                fieldId:
+                  mapping.fieldId,
+
+                label:
+                  mapping.label,
+
+                kind:
+                  mapping.kind,
+
+                targetPath:
+                  mapping.targetPath,
+
+                value:
+                  mapping.value,
+
+                confidence:
+                  mapping.confidence,
+
+                selectorHint:
+                  field.selectorHint,
+              },
+            ];
+          },
+        );
+
+    if (
+      instructions.length ===
+      0
+    ) {
+      return {
+        success: true,
+
+        data: {
+          attemptedCount: 0,
+
+          filledCount: 0,
+
+          skippedCount: 0,
+
+          failedCount: 0,
+
+          results: [],
+        },
+      };
+    }
+
+    try {
+      return (
+        await chrome.tabs.sendMessage(
+          tab.id,
+          {
+            type:
+              "RUN_AUTOFILL",
+
+            instructions,
+          },
+        )
+      ) as AutofillResponse;
+    } catch (error) {
+      console.error(
+        "Unable to run Workday autofill:",
+        error,
+      );
+
+      return {
+        success: false,
+
+        error:
+          "Unable to run autofill on this Workday page.",
       };
     }
   };
@@ -159,6 +367,7 @@ chrome.runtime.onMessage.addListener(
     ) {
       sendResponse({
         success: true,
+
         data: {
           message:
             "PONG",
@@ -178,7 +387,9 @@ chrome.runtime.onMessage.addListener(
       }).then((state) => {
         sendResponse({
           success: true,
-          data: state,
+
+          data:
+            state,
         });
       });
 
@@ -189,13 +400,33 @@ chrome.runtime.onMessage.addListener(
       message.type ===
       "SET_CANDIDATE_ID"
     ) {
+      const candidateId =
+        message.candidateId.trim();
+
+      if (!candidateId) {
+        sendResponse({
+          success: false,
+
+          error:
+            "Candidate ID is required.",
+        });
+
+        return false;
+      }
+
       void updateExtensionState({
-        candidateId:
-          message.candidateId,
+        candidateId,
       }).then((state) => {
+        console.log(
+          "Candidate ID saved:",
+          candidateId,
+        );
+
         sendResponse({
           success: true,
-          data: state,
+
+          data:
+            state,
         });
       });
 
@@ -210,14 +441,21 @@ chrome.runtime.onMessage.addListener(
         const backendConnected =
           await checkBackendHealth();
 
+        const current =
+          await getExtensionState();
+
         const state =
           await updateExtensionState({
+            ...current,
+
             backendConnected,
           });
 
         sendResponse({
           success: true,
-          data: state,
+
+          data:
+            state,
         });
       })();
 
@@ -248,11 +486,26 @@ chrome.runtime.onMessage.addListener(
       return true;
     }
 
+    if (
+      message.type ===
+      "AUTOFILL_WORKDAY_FIELDS"
+    ) {
+      void autofillActiveTab(
+        message.candidateId,
+      ).then(
+        sendResponse,
+      );
+
+      return true;
+    }
+
     void getExtensionState().then(
       (state) => {
         sendResponse({
           success: true,
-          data: state,
+
+          data:
+            state,
         });
       },
     );
