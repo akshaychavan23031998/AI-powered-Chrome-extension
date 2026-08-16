@@ -35,6 +35,11 @@ import type {
 } from "./repeatable-fill";
 
 import type {
+  WorkdayReviewResult,
+  WorkdaySubmitResult,
+} from "./review";
+
+import type {
   WorkdayValidationResult,
 } from "./validation";
 
@@ -125,6 +130,20 @@ export type ExtensionMessage =
     }
   | {
       type: "RUN_VALIDATION_SCAN";
+    }
+  | {
+      type: "SCAN_WORKDAY_REVIEW";
+    }
+  | {
+      type: "RUN_REVIEW_SCAN";
+    }
+  | {
+      type: "SUBMIT_WORKDAY_APPLICATION";
+      explicitlyConfirmed: boolean;
+    }
+  | {
+      type: "RUN_SUBMIT_WORKDAY_APPLICATION";
+      explicitlyConfirmed: boolean;
     };
 
 export interface MessageResponse<T = unknown> {
@@ -162,3 +181,9 @@ export type QuestionScanResponse =
 
 export type ValidationResponse =
   MessageResponse<WorkdayValidationResult>;
+
+export type ReviewScanResponse =
+  MessageResponse<WorkdayReviewResult>;
+
+export type SubmitResponse =
+  MessageResponse<WorkdaySubmitResult>;

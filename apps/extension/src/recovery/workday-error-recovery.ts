@@ -186,8 +186,16 @@ export const recoverAfterWorkdayAction =
               3000,
           );
 
-          console.warn(
-            `Workday recovery attempt ${attempt} did not succeed.`,
+          /*
+           * A missed first check is normal on Workday because
+           * navigation can render asynchronously.
+           *
+           * Keep this as debug information rather than a warning
+           * so Chrome does not surface a successful recovery cycle
+           * as an extension error.
+           */
+          console.debug(
+            `Workday recovery attempt ${attempt} is still waiting for the expected state change.`,
           );
 
           return false;

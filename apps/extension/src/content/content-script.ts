@@ -31,6 +31,14 @@ import {
   scanRepeatableSections,
 } from "../repeatable/repeatable-section-detector";
 
+import {
+  scanWorkdayReview,
+} from "../review/workday-review";
+
+import {
+  submitWorkdayApplication,
+} from "../submission/workday-submit";
+
 import type {
   ExtensionMessage,
   MessageResponse,
@@ -411,6 +419,67 @@ chrome.runtime.onMessage.addListener(
       }
 
       return false;
+    }
+
+    if (
+      message.type ===
+      "RUN_REVIEW_SCAN"
+    ) {
+      try {
+        const result =
+          scanWorkdayReview();
+
+        console.log(
+          "Workday final review scan completed:",
+          result,
+        );
+
+        sendResponse({
+          success: true,
+          data: result,
+        });
+      } catch (error) {
+        sendResponse({
+          success: false,
+          error:
+            error instanceof Error
+              ? error.message
+              : "Unable to scan the Workday Review page.",
+        });
+      }
+
+      return false;
+    }
+
+    if (
+      message.type ===
+      "RUN_SUBMIT_WORKDAY_APPLICATION"
+    ) {
+      void submitWorkdayApplication(
+        message.explicitlyConfirmed,
+      )
+        .then((result) => {
+          console.log(
+            "Workday submission result:",
+            result,
+          );
+
+          sendResponse({
+            success: true,
+            data: result,
+          });
+        })
+        .catch((error) => {
+          sendResponse({
+            success: false,
+            error:
+              error instanceof Error
+                ? error.message
+                : "Unable to submit the Workday application.",
+          });
+        });
+
+      return true;
     }
 
     return false;

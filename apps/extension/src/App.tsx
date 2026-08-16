@@ -50,7 +50,9 @@ import type {
   NavigationStateResponse,
   QuestionScanResponse,
   RepeatableAutofillResponse,
+  ReviewScanResponse,
   ScanResponse,
+  SubmitResponse,
   ValidationResponse,
 } from "./types/messages";
 
@@ -71,6 +73,11 @@ import type {
 import type {
   RepeatableAutofillResult,
 } from "./types/repeatable-fill";
+
+import type {
+  WorkdayReviewResult,
+  WorkdaySubmitResult,
+} from "./types/review";
 
 import type {
   WorkdayValidationResult,
@@ -158,6 +165,25 @@ function App() {
   >();
 
   const [
+    reviewResult,
+    setReviewResult,
+  ] = useState<
+    WorkdayReviewResult | undefined
+  >();
+
+  const [
+    submitResult,
+    setSubmitResult,
+  ] = useState<
+    WorkdaySubmitResult | undefined
+  >();
+
+  const [
+    reviewAcknowledged,
+    setReviewAcknowledged,
+  ] = useState(false);
+
+  const [
     loading,
     setLoading,
   ] = useState(true);
@@ -208,6 +234,16 @@ function App() {
   ] = useState(false);
 
   const [
+    scanningReview,
+    setScanningReview,
+  ] = useState(false);
+
+  const [
+    submitting,
+    setSubmitting,
+  ] = useState(false);
+
+  const [
     addingSection,
     setAddingSection,
   ] = useState<
@@ -228,7 +264,8 @@ function App() {
         try {
           const response =
             (await chrome.runtime.sendMessage({
-              type: "GET_EXTENSION_STATE",
+              type:
+                "GET_EXTENSION_STATE",
             })) as MessageResponse<ExtensionState>;
 
           if (
@@ -277,8 +314,11 @@ function App() {
 
       const response =
         (await chrome.runtime.sendMessage({
-          type: "SET_CANDIDATE_ID",
-          candidateId: normalized,
+          type:
+            "SET_CANDIDATE_ID",
+
+          candidateId:
+            normalized,
         })) as MessageResponse<ExtensionState>;
 
       if (
@@ -308,7 +348,8 @@ function App() {
       try {
         const response =
           (await chrome.runtime.sendMessage({
-            type: "SCAN_WORKDAY_PAGE",
+            type:
+              "SCAN_WORKDAY_PAGE",
           })) as ScanResponse;
 
         if (
@@ -354,8 +395,11 @@ function App() {
       try {
         const response =
           (await chrome.runtime.sendMessage({
-            type: "MAP_WORKDAY_FIELDS",
-            candidateId: id,
+            type:
+              "MAP_WORKDAY_FIELDS",
+
+            candidateId:
+              id,
           })) as MappingResponse;
 
         if (
@@ -409,8 +453,11 @@ function App() {
       try {
         const response =
           (await chrome.runtime.sendMessage({
-            type: "AUTOFILL_WORKDAY_FIELDS",
-            candidateId: id,
+            type:
+              "AUTOFILL_WORKDAY_FIELDS",
+
+            candidateId:
+              id,
           })) as AutofillResponse;
 
         if (
@@ -445,7 +492,8 @@ function App() {
       try {
         const response =
           (await chrome.runtime.sendMessage({
-            type: "SCAN_DYNAMIC_SECTIONS",
+            type:
+              "SCAN_DYNAMIC_SECTIONS",
           })) as DynamicScanResponse;
 
         if (
@@ -474,7 +522,8 @@ function App() {
 
   const addRepeatableSection =
     async (
-      kind: RepeatableSectionKind,
+      kind:
+        RepeatableSectionKind,
     ): Promise<void> => {
       setAddingSection(
         kind,
@@ -483,7 +532,9 @@ function App() {
       try {
         const response =
           (await chrome.runtime.sendMessage({
-            type: "ADD_REPEATABLE_ENTRY",
+            type:
+              "ADD_REPEATABLE_ENTRY",
+
             kind,
           })) as AddRepeatableEntryResponse;
 
@@ -543,8 +594,11 @@ function App() {
       try {
         const response =
           (await chrome.runtime.sendMessage({
-            type: "AUTOFILL_REPEATABLE_SECTIONS",
-            candidateId: id,
+            type:
+              "AUTOFILL_REPEATABLE_SECTIONS",
+
+            candidateId:
+              id,
           })) as RepeatableAutofillResponse;
 
         if (
@@ -584,7 +638,8 @@ function App() {
       try {
         const response =
           (await chrome.runtime.sendMessage({
-            type: "SCAN_WORKDAY_NAVIGATION",
+            type:
+              "SCAN_WORKDAY_NAVIGATION",
           })) as NavigationStateResponse;
 
         if (
@@ -628,7 +683,8 @@ function App() {
       try {
         const response =
           (await chrome.runtime.sendMessage({
-            type: "SCAN_WORKDAY_QUESTIONS",
+            type:
+              "SCAN_WORKDAY_QUESTIONS",
           })) as QuestionScanResponse;
 
         if (
@@ -668,7 +724,8 @@ function App() {
       try {
         const response =
           (await chrome.runtime.sendMessage({
-            type: "VALIDATE_WORKDAY_STEP",
+            type:
+              "VALIDATE_WORKDAY_STEP",
           })) as ValidationResponse;
 
         if (
@@ -715,17 +772,23 @@ function App() {
           "Validate this Workday step, save it, and continue to the next step?",
         );
 
-      if (!confirmed) {
+      if (
+        !confirmed
+      ) {
         return;
       }
 
-      setNavigating(true);
+      setNavigating(
+        true,
+      );
+
       setError(undefined);
 
       try {
         const response =
           (await chrome.runtime.sendMessage({
-            type: "NAVIGATE_WORKDAY_CONTINUE",
+            type:
+              "NAVIGATE_WORKDAY_CONTINUE",
           })) as NavigationActionResponse;
 
         if (
@@ -762,19 +825,25 @@ function App() {
             : "Unable to continue.",
         );
       } finally {
-        setNavigating(false);
+        setNavigating(
+          false,
+        );
       }
     };
 
   const navigateBack =
     async (): Promise<void> => {
-      setNavigating(true);
+      setNavigating(
+        true,
+      );
+
       setError(undefined);
 
       try {
         const response =
           (await chrome.runtime.sendMessage({
-            type: "NAVIGATE_WORKDAY_BACK",
+            type:
+              "NAVIGATE_WORKDAY_BACK",
           })) as NavigationActionResponse;
 
         if (
@@ -794,6 +863,14 @@ function App() {
         setNavigationState(
           response.data.state,
         );
+
+        setReviewResult(
+          undefined,
+        );
+
+        setReviewAcknowledged(
+          false,
+        );
       } catch (caughtError) {
         setError(
           caughtError instanceof Error
@@ -801,7 +878,142 @@ function App() {
             : "Unable to navigate back.",
         );
       } finally {
-        setNavigating(false);
+        setNavigating(
+          false,
+        );
+      }
+    };
+
+  const scanFinalReview =
+    async (): Promise<void> => {
+      setScanningReview(
+        true,
+      );
+
+      setError(undefined);
+
+      setSubmitResult(
+        undefined,
+      );
+
+      setReviewAcknowledged(
+        false,
+      );
+
+      try {
+        const response =
+          (await chrome.runtime.sendMessage({
+            type:
+              "SCAN_WORKDAY_REVIEW",
+          })) as ReviewScanResponse;
+
+        if (
+          !response.success ||
+          !response.data
+        ) {
+          throw new Error(
+            response.error ??
+              "Unable to scan the final Workday Review page.",
+          );
+        }
+
+        setReviewResult(
+          response.data,
+        );
+      } catch (caughtError) {
+        setError(
+          caughtError instanceof Error
+            ? caughtError.message
+            : "Unable to scan final review.",
+        );
+      } finally {
+        setScanningReview(
+          false,
+        );
+      }
+    };
+
+  const submitApplication =
+    async (): Promise<void> => {
+      if (
+        !reviewResult
+          ?.readyForConfirmation
+      ) {
+        setError(
+          "Final Review is not ready for submission.",
+        );
+
+        return;
+      }
+
+      if (
+        !reviewAcknowledged
+      ) {
+        setError(
+          "Confirm that you reviewed the application before submitting.",
+        );
+
+        return;
+      }
+
+      const confirmed =
+        window.confirm(
+          "FINAL CONFIRMATION\n\nThis will submit the application to Workday.\n\nSubmit this application now?",
+        );
+
+      if (
+        !confirmed
+      ) {
+        return;
+      }
+
+      setSubmitting(
+        true,
+      );
+
+      setError(undefined);
+
+      try {
+        const response =
+          (await chrome.runtime.sendMessage({
+            type:
+              "SUBMIT_WORKDAY_APPLICATION",
+
+            explicitlyConfirmed:
+              true,
+          })) as SubmitResponse;
+
+        if (
+          !response.success ||
+          !response.data
+        ) {
+          throw new Error(
+            response.error ??
+              "Unable to submit the Workday application.",
+          );
+        }
+
+        setSubmitResult(
+          response.data,
+        );
+
+        if (
+          !response.data.submitted
+        ) {
+          setError(
+            response.data.message,
+          );
+        }
+      } catch (caughtError) {
+        setError(
+          caughtError instanceof Error
+            ? caughtError.message
+            : "Unable to submit Workday application.",
+        );
+      } finally {
+        setSubmitting(
+          false,
+        );
       }
     };
 
@@ -820,6 +1032,8 @@ function App() {
     scanningQuestions ||
     validating ||
     navigating ||
+    scanningReview ||
+    submitting ||
     Boolean(
       addingSection,
     );
@@ -1312,6 +1526,213 @@ function App() {
         </section>
       )}
 
+      {reviewResult && (
+        <section className="fill-summary">
+          <p className="status-label">
+            {reviewResult.applicationSubmitted
+              ? "Submission Status"
+              : "Final Review"}
+          </p>
+
+          <p className="scan-title">
+            {reviewResult.applicationSubmitted
+              ? "Application Submitted"
+              : reviewResult.readyForConfirmation
+                ? "Ready for explicit confirmation"
+                : "Not ready for submission"}
+          </p>
+
+          {reviewResult.applicationSubmitted ? (
+            <>
+              <div className="scan-stats">
+                <div>
+                  <strong>
+                    YES
+                  </strong>
+
+                  <span>
+                    Completed
+                  </span>
+                </div>
+
+                <div>
+                  <strong>
+                    NO
+                  </strong>
+
+                  <span>
+                    Review
+                  </span>
+                </div>
+
+                <div>
+                  <strong>
+                    NO
+                  </strong>
+
+                  <span>
+                    Submit
+                  </span>
+                </div>
+              </div>
+
+              <p className="mapping-empty">
+                {
+                  reviewResult.reason
+                }
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="scan-stats">
+                <div>
+                  <strong>
+                    {reviewResult.isReviewStep
+                      ? "YES"
+                      : "NO"}
+                  </strong>
+
+                  <span>
+                    Review
+                  </span>
+                </div>
+
+                <div>
+                  <strong>
+                    {
+                      reviewResult.sectionCount
+                    }
+                  </strong>
+
+                  <span>
+                    Sections
+                  </span>
+                </div>
+
+                <div>
+                  <strong>
+                    {reviewResult.submitDetected
+                      ? "YES"
+                      : "NO"}
+                  </strong>
+
+                  <span>
+                    Submit
+                  </span>
+                </div>
+              </div>
+
+              <p className="mapping-empty">
+                {
+                  reviewResult.reason
+                }
+              </p>
+
+              {reviewResult.sections.map(
+                (section) => (
+                  <div
+                    key={
+                      section.id
+                    }
+                    className="mapping-empty"
+                  >
+                    <strong>
+                      {
+                        section.title
+                      }
+                    </strong>
+
+                    <div>
+                      {
+                        section.text.length >
+                        350
+                          ? `${section.text.slice(
+                              0,
+                              350,
+                            )}...`
+                          : section.text
+                      }
+                    </div>
+                  </div>
+                ),
+              )}
+
+              {reviewResult.readyForConfirmation && (
+                <>
+                  <label
+                    className="mapping-empty"
+                    style={{
+                      display:
+                        "flex",
+
+                      gap:
+                        "8px",
+
+                      alignItems:
+                        "flex-start",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={
+                        reviewAcknowledged
+                      }
+                      onChange={(
+                        event,
+                      ) =>
+                        setReviewAcknowledged(
+                          event.target.checked,
+                        )
+                      }
+                    />
+
+                    <span>
+                      I have reviewed the application and want to enable final submission.
+                    </span>
+                  </label>
+
+                  <button
+                    type="button"
+                    className="autofill-button"
+                    disabled={
+                      busy ||
+                      !reviewAcknowledged
+                    }
+                    onClick={() =>
+                      void submitApplication()
+                    }
+                  >
+                    {submitting
+                      ? "Submitting..."
+                      : "Submit Application"}
+                  </button>
+                </>
+              )}
+            </>
+          )}
+        </section>
+      )}
+
+      {submitResult && (
+        <section className="fill-summary">
+          <p className="status-label">
+            Submission Result
+          </p>
+
+          <p className="scan-title">
+            {submitResult.submitted
+              ? "Submission action completed"
+              : "Submission not confirmed"}
+          </p>
+
+          <p className="mapping-empty">
+            {
+              submitResult.message
+            }
+          </p>
+        </section>
+      )}
+
       {error && (
         <div className="error-message">
           {error}
@@ -1441,8 +1862,24 @@ function App() {
           : "Validate Current Step"}
       </button>
 
+      <button
+        className="primary-button"
+        type="button"
+        disabled={
+          busy ||
+          !extensionState.workdayDetected
+        }
+        onClick={() =>
+          void scanFinalReview()
+        }
+      >
+        {scanningReview
+          ? "Scanning Final Review..."
+          : "Scan Final Review"}
+      </button>
+
       <footer className="popup-footer">
-        Phase 12 · Validation & Error Recovery
+        Phase 13 · Final Review & Explicit Submission
       </footer>
     </main>
   );

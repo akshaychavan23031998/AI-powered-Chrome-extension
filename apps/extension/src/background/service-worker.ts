@@ -28,7 +28,9 @@ import type {
   NavigationStateResponse,
   QuestionScanResponse,
   RepeatableAutofillResponse,
+  ReviewScanResponse,
   ScanResponse,
+  SubmitResponse,
   ValidationResponse,
 } from "../types/messages";
 
@@ -76,14 +78,16 @@ const isWorkdayUrl = (
   );
 };
 
-const scanActiveTab =
-  async (): Promise<ScanResponse> => {
+const getWorkdayTab =
+  async (): Promise<{
+    tab?: chrome.tabs.Tab;
+    error?: string;
+  }> => {
     const tab =
       await getActiveTab();
 
     if (!tab?.id) {
       return {
-        success: false,
         error:
           "No active browser tab found.",
       };
@@ -95,9 +99,33 @@ const scanActiveTab =
       )
     ) {
       return {
+        error:
+          "Open a Workday page first.",
+      };
+    }
+
+    return {
+      tab,
+    };
+  };
+
+const scanActiveTab =
+  async (): Promise<ScanResponse> => {
+    const {
+      tab,
+      error,
+    } =
+      await getWorkdayTab();
+
+    if (
+      error ||
+      !tab?.id
+    ) {
+      return {
         success: false,
         error:
-          "Open a Workday page before scanning.",
+          error ??
+          "No Workday tab found.",
       };
     }
 
@@ -111,10 +139,10 @@ const scanActiveTab =
           },
         )
       ) as ScanResponse;
-    } catch (error) {
+    } catch (caughtError) {
       console.error(
         "Unable to communicate with Workday content script:",
-        error,
+        caughtError,
       );
 
       return {
@@ -153,7 +181,8 @@ const mapActiveTab =
 
       return {
         success: true,
-        data: mappingResult,
+        data:
+          mappingResult,
       };
     } catch (error) {
       return {
@@ -170,26 +199,21 @@ const autofillActiveTab =
   async (
     candidateId: string,
   ): Promise<AutofillResponse> => {
-    const tab =
-      await getActiveTab();
-
-    if (!tab?.id) {
-      return {
-        success: false,
-        error:
-          "No active browser tab found.",
-      };
-    }
+    const {
+      tab,
+      error,
+    } =
+      await getWorkdayTab();
 
     if (
-      !isWorkdayUrl(
-        tab.url,
-      )
+      error ||
+      !tab?.id
     ) {
       return {
         success: false,
         error:
-          "Open a Workday page before autofilling.",
+          error ??
+          "No Workday tab found.",
       };
     }
 
@@ -216,12 +240,12 @@ const autofillActiveTab =
           candidateId,
           scan.data.fields,
         );
-    } catch (error) {
+    } catch (caughtError) {
       return {
         success: false,
         error:
-          error instanceof Error
-            ? error.message
+          caughtError instanceof Error
+            ? caughtError.message
             : "Unable to map Workday fields.",
       };
     }
@@ -337,14 +361,21 @@ const autofillActiveTab =
 
 const scanDynamicSections =
   async (): Promise<DynamicScanResponse> => {
-    const tab =
-      await getActiveTab();
+    const {
+      tab,
+      error,
+    } =
+      await getWorkdayTab();
 
-    if (!tab?.id) {
+    if (
+      error ||
+      !tab?.id
+    ) {
       return {
         success: false,
         error:
-          "No active browser tab found.",
+          error ??
+          "No Workday tab found.",
       };
     }
 
@@ -378,14 +409,21 @@ const addRepeatableEntryOnActiveTab =
         }
       >["kind"],
   ): Promise<AddRepeatableEntryResponse> => {
-    const tab =
-      await getActiveTab();
+    const {
+      tab,
+      error,
+    } =
+      await getWorkdayTab();
 
-    if (!tab?.id) {
+    if (
+      error ||
+      !tab?.id
+    ) {
       return {
         success: false,
         error:
-          "No active browser tab found.",
+          error ??
+          "No Workday tab found.",
       };
     }
 
@@ -413,14 +451,21 @@ const autofillRepeatableSectionsOnActiveTab =
   async (
     candidateId: string,
   ): Promise<RepeatableAutofillResponse> => {
-    const tab =
-      await getActiveTab();
+    const {
+      tab,
+      error,
+    } =
+      await getWorkdayTab();
 
-    if (!tab?.id) {
+    if (
+      error ||
+      !tab?.id
+    ) {
       return {
         success: false,
         error:
-          "No active browser tab found.",
+          error ??
+          "No Workday tab found.",
       };
     }
 
@@ -464,12 +509,12 @@ const autofillRepeatableSectionsOnActiveTab =
           },
         )
       ) as RepeatableAutofillResponse;
-    } catch (error) {
+    } catch (caughtError) {
       return {
         success: false,
         error:
-          error instanceof Error
-            ? error.message
+          caughtError instanceof Error
+            ? caughtError.message
             : "Unable to autofill Experience and Education.",
       };
     }
@@ -477,14 +522,21 @@ const autofillRepeatableSectionsOnActiveTab =
 
 const scanNavigationOnActiveTab =
   async (): Promise<NavigationStateResponse> => {
-    const tab =
-      await getActiveTab();
+    const {
+      tab,
+      error,
+    } =
+      await getWorkdayTab();
 
-    if (!tab?.id) {
+    if (
+      error ||
+      !tab?.id
+    ) {
       return {
         success: false,
         error:
-          "No active browser tab found.",
+          error ??
+          "No Workday tab found.",
       };
     }
 
@@ -509,14 +561,21 @@ const scanNavigationOnActiveTab =
 
 const navigateContinueOnActiveTab =
   async (): Promise<NavigationActionResponse> => {
-    const tab =
-      await getActiveTab();
+    const {
+      tab,
+      error,
+    } =
+      await getWorkdayTab();
 
-    if (!tab?.id) {
+    if (
+      error ||
+      !tab?.id
+    ) {
       return {
         success: false,
         error:
-          "No active browser tab found.",
+          error ??
+          "No Workday tab found.",
       };
     }
 
@@ -541,14 +600,21 @@ const navigateContinueOnActiveTab =
 
 const navigateBackOnActiveTab =
   async (): Promise<NavigationActionResponse> => {
-    const tab =
-      await getActiveTab();
+    const {
+      tab,
+      error,
+    } =
+      await getWorkdayTab();
 
-    if (!tab?.id) {
+    if (
+      error ||
+      !tab?.id
+    ) {
       return {
         success: false,
         error:
-          "No active browser tab found.",
+          error ??
+          "No Workday tab found.",
       };
     }
 
@@ -573,26 +639,21 @@ const navigateBackOnActiveTab =
 
 const scanQuestionsOnActiveTab =
   async (): Promise<QuestionScanResponse> => {
-    const tab =
-      await getActiveTab();
-
-    if (!tab?.id) {
-      return {
-        success: false,
-        error:
-          "No active browser tab found.",
-      };
-    }
+    const {
+      tab,
+      error,
+    } =
+      await getWorkdayTab();
 
     if (
-      !isWorkdayUrl(
-        tab.url,
-      )
+      error ||
+      !tab?.id
     ) {
       return {
         success: false,
         error:
-          "Open a Workday page before scanning questions.",
+          error ??
+          "No Workday tab found.",
       };
     }
 
@@ -606,10 +667,10 @@ const scanQuestionsOnActiveTab =
           },
         )
       ) as QuestionScanResponse;
-    } catch (error) {
+    } catch (caughtError) {
       console.error(
         "Unable to scan Workday questions:",
-        error,
+        caughtError,
       );
 
       return {
@@ -622,26 +683,21 @@ const scanQuestionsOnActiveTab =
 
 const validateActiveTab =
   async (): Promise<ValidationResponse> => {
-    const tab =
-      await getActiveTab();
-
-    if (!tab?.id) {
-      return {
-        success: false,
-        error:
-          "No active browser tab found.",
-      };
-    }
+    const {
+      tab,
+      error,
+    } =
+      await getWorkdayTab();
 
     if (
-      !isWorkdayUrl(
-        tab.url,
-      )
+      error ||
+      !tab?.id
     ) {
       return {
         success: false,
         error:
-          "Open a Workday page before validating.",
+          error ??
+          "No Workday tab found.",
       };
     }
 
@@ -655,16 +711,121 @@ const validateActiveTab =
           },
         )
       ) as ValidationResponse;
-    } catch (error) {
+    } catch (caughtError) {
       console.error(
         "Unable to validate Workday page:",
-        error,
+        caughtError,
       );
 
       return {
         success: false,
         error:
           "Unable to validate this Workday step. Refresh the page and try again.",
+      };
+    }
+  };
+
+const scanReviewOnActiveTab =
+  async (): Promise<ReviewScanResponse> => {
+    const {
+      tab,
+      error,
+    } =
+      await getWorkdayTab();
+
+    if (
+      error ||
+      !tab?.id
+    ) {
+      return {
+        success: false,
+        error:
+          error ??
+          "No Workday tab found.",
+      };
+    }
+
+    try {
+      return (
+        await chrome.tabs.sendMessage(
+          tab.id,
+          {
+            type:
+              "RUN_REVIEW_SCAN",
+          },
+        )
+      ) as ReviewScanResponse;
+    } catch (caughtError) {
+      console.error(
+        "Unable to scan Workday review:",
+        caughtError,
+      );
+
+      return {
+        success: false,
+        error:
+          "Unable to scan the final Workday Review page.",
+      };
+    }
+  };
+
+const submitApplicationOnActiveTab =
+  async (
+    explicitlyConfirmed:
+      boolean,
+  ): Promise<SubmitResponse> => {
+    const {
+      tab,
+      error,
+    } =
+      await getWorkdayTab();
+
+    if (
+      error ||
+      !tab?.id
+    ) {
+      return {
+        success: false,
+        error:
+          error ??
+          "No Workday tab found.",
+      };
+    }
+
+    if (
+      explicitlyConfirmed !==
+      true
+    ) {
+      return {
+        success: false,
+        error:
+          "Explicit user confirmation is required before submission.",
+      };
+    }
+
+    try {
+      return (
+        await chrome.tabs.sendMessage(
+          tab.id,
+          {
+            type:
+              "RUN_SUBMIT_WORKDAY_APPLICATION",
+
+            explicitlyConfirmed:
+              true,
+          },
+        )
+      ) as SubmitResponse;
+    } catch (caughtError) {
+      console.error(
+        "Unable to submit Workday application:",
+        caughtError,
+      );
+
+      return {
+        success: false,
+        error:
+          "Unable to complete the Workday submission action.",
       };
     }
   };
@@ -898,11 +1059,36 @@ chrome.runtime.onMessage.addListener(
       return true;
     }
 
+    if (
+      message.type ===
+      "SCAN_WORKDAY_REVIEW"
+    ) {
+      void scanReviewOnActiveTab().then(
+        sendResponse,
+      );
+
+      return true;
+    }
+
+    if (
+      message.type ===
+      "SUBMIT_WORKDAY_APPLICATION"
+    ) {
+      void submitApplicationOnActiveTab(
+        message.explicitlyConfirmed,
+      ).then(
+        sendResponse,
+      );
+
+      return true;
+    }
+
     void getExtensionState().then(
       (state) => {
         sendResponse({
           success: true,
-          data: state,
+          data:
+            state,
         });
       },
     );
