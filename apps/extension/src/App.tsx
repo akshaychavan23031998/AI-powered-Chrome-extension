@@ -1017,9 +1017,84 @@ function App() {
       }
     };
 
+  /*
+   * Initial popup state load.
+   *
+   * Keep this separate from refreshState().
+   * React's set-state-in-effect lint rule does not want us
+   * synchronously invoking another state-updating callback
+   * directly from the effect body.
+   *
+   * The Chrome message is asynchronous, so state updates occur
+   * after the external system responds.
+   */
   useEffect(() => {
-    void refreshState();
-  }, [refreshState]);
+    let cancelled =
+      false;
+
+    const loadInitialState =
+      async (): Promise<void> => {
+        try {
+          const response =
+            (await chrome.runtime.sendMessage({
+              type:
+                "GET_EXTENSION_STATE",
+            })) as MessageResponse<ExtensionState>;
+
+          if (
+            cancelled
+          ) {
+            return;
+          }
+
+          if (
+            !response.success ||
+            !response.data
+          ) {
+            throw new Error(
+              response.error ??
+                "Unable to read extension state.",
+            );
+          }
+
+          setExtensionState(
+            response.data,
+          );
+
+          setCandidateId(
+            response.data.candidateId ??
+              "",
+          );
+        } catch (caughtError) {
+          if (
+            cancelled
+          ) {
+            return;
+          }
+
+          setError(
+            caughtError instanceof Error
+              ? caughtError.message
+              : "Unknown extension error.",
+          );
+        } finally {
+          if (
+            !cancelled
+          ) {
+            setLoading(
+              false,
+            );
+          }
+        }
+      };
+
+    void loadInitialState();
+
+    return () => {
+      cancelled =
+        true;
+    };
+  }, []);
 
   const busy =
     loading ||
@@ -1879,7 +1954,7 @@ function App() {
       </button>
 
       <footer className="popup-footer">
-        Phase 13 · Final Review & Explicit Submission
+        Phase 14 · Testing & Safety Hardening
       </footer>
     </main>
   );
