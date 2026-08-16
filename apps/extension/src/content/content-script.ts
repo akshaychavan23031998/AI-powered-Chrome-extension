@@ -1,26 +1,20 @@
-const WORKDAY_HOST_PATTERNS = [
-  "myworkdayjobs.com",
-  "workday.com",
-];
+import type {
+  ExtensionMessage,
+  MessageResponse,
+} from "../types/messages";
 
-const detectWorkdayPage =
-  (): boolean => {
-    const hostname =
-      window.location.hostname
-        .toLowerCase();
+import {
+  isWorkdayPage,
+} from "../workday/workday-detector";
 
-    return WORKDAY_HOST_PATTERNS.some(
-      (pattern) =>
-        hostname.endsWith(
-          pattern,
-        ),
-    );
-  };
+import {
+  scanWorkdayPage,
+} from "../workday/workday-scanner";
 
 const notifyWorkdayDetection =
   async (): Promise<void> => {
     const detected =
-      detectWorkdayPage();
+      isWorkdayPage();
 
     try {
       await chrome.runtime.sendMessage({
@@ -40,3 +34,68 @@ console.log(
 );
 
 void notifyWorkdayDetection();
+
+chrome.runtime.onMessage.addListener(
+  (
+    message: ExtensionMessage,
+    _sender:
+      chrome.runtime.MessageSender,
+    sendResponse: (
+      response: MessageResponse,
+    ) => void,
+  ) => {
+    if (
+      message.type ===
+      "CHECK_WORKDAY"
+    ) {
+      sendResponse({
+        success: true,
+
+        data: {
+          detected:
+            isWorkdayPage(),
+        },
+      });
+
+      return false;
+    }
+
+    if (
+      message.type ===
+      "RUN_DOM_SCAN"
+    ) {
+      try {
+        const result =
+          scanWorkdayPage();
+
+        console.log(
+          "Workday DOM scan completed:",
+          result,
+        );
+
+        sendResponse({
+          success: true,
+          data: result,
+        });
+      } catch (error) {
+        console.error(
+          "Workday DOM scan failed:",
+          error,
+        );
+
+        sendResponse({
+          success: false,
+
+          error:
+            error instanceof Error
+              ? error.message
+              : "Unknown DOM scanning error.",
+        });
+      }
+
+      return false;
+    }
+
+    return false;
+  },
+);

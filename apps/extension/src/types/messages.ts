@@ -1,3 +1,5 @@
+import type { WorkdayScanResult } from "./dom-field";
+
 export type ExtensionMessage =
   | {
       type: "PING";
@@ -11,6 +13,12 @@ export type ExtensionMessage =
     }
   | {
       type: "GET_EXTENSION_STATE";
+    }
+  | {
+      type: "SCAN_WORKDAY_PAGE";
+    }
+  | {
+      type: "RUN_DOM_SCAN";
     };
 
 export interface MessageResponse<T = unknown> {
@@ -20,3 +28,6 @@ export interface MessageResponse<T = unknown> {
 
   error?: string;
 }
+
+export type ScanResponse =
+  MessageResponse<WorkdayScanResult>;

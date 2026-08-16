@@ -4,18 +4,34 @@ import {
   useState,
 } from "react";
 
-import "./App.css";
+// import "./App.css";
 
-import { StatusCard } from "./components/StatusCard";
+import {
+  ScanSummary,
+} from "./components/ScanSummary";
 
-import type { ExtensionState } from "./types/extension-state";
+import {
+  StatusCard,
+} from "./components/StatusCard";
 
-import type { MessageResponse } from "./types/messages";
+import type {
+  WorkdayScanResult,
+} from "./types/dom-field";
 
-const initialState: ExtensionState = {
-  backendConnected: false,
-  workdayDetected: false,
-};
+import type {
+  ExtensionState,
+} from "./types/extension-state";
+
+import type {
+  MessageResponse,
+  ScanResponse,
+} from "./types/messages";
+
+const initialState:
+  ExtensionState = {
+    backendConnected: false,
+    workdayDetected: false,
+  };
 
 function App() {
   const [
@@ -26,22 +42,44 @@ function App() {
       initialState,
     );
 
-  const [loading, setLoading] =
+  const [
+    scanResult,
+    setScanResult,
+  ] =
+    useState<
+      WorkdayScanResult | undefined
+    >();
+
+  const [
+    loading,
+    setLoading,
+  ] =
     useState(true);
 
-  const [error, setError] =
+  const [
+    scanning,
+    setScanning,
+  ] =
+    useState(false);
+
+  const [
+    error,
+    setError,
+  ] =
     useState<string>();
 
   const refreshState =
     useCallback(
       async (): Promise<void> => {
         setLoading(true);
+
         setError(undefined);
 
         try {
           const response =
             (await chrome.runtime.sendMessage({
-              type: "GET_EXTENSION_STATE",
+              type:
+                "GET_EXTENSION_STATE",
             })) as MessageResponse<ExtensionState>;
 
           if (
@@ -57,9 +95,12 @@ function App() {
           setExtensionState(
             response.data,
           );
-        } catch (caughtError) {
+        } catch (
+          caughtError
+        ) {
           setError(
-            caughtError instanceof Error
+            caughtError instanceof
+              Error
               ? caughtError.message
               : "Unknown extension error.",
           );
@@ -69,6 +110,50 @@ function App() {
       },
       [],
     );
+
+  const scanPage =
+    async (): Promise<void> => {
+      setScanning(true);
+
+      setError(undefined);
+
+      try {
+        const response =
+          (await chrome.runtime.sendMessage({
+            type:
+              "SCAN_WORKDAY_PAGE",
+          })) as ScanResponse;
+
+        if (
+          !response.success ||
+          !response.data
+        ) {
+          throw new Error(
+            response.error ??
+              "Unable to scan Workday page.",
+          );
+        }
+
+        setScanResult(
+          response.data,
+        );
+      } catch (
+        caughtError
+      ) {
+        setScanResult(
+          undefined,
+        );
+
+        setError(
+          caughtError instanceof
+            Error
+            ? caughtError.message
+            : "Unknown scanning error.",
+        );
+      } finally {
+        setScanning(false);
+      }
+    };
 
   useEffect(() => {
     void refreshState();
@@ -113,6 +198,14 @@ function App() {
         />
       </section>
 
+      {scanResult && (
+        <ScanSummary
+          result={
+            scanResult
+          }
+        />
+      )}
+
       {error && (
         <div className="error-message">
           {error}
@@ -122,7 +215,10 @@ function App() {
       <button
         className="primary-button"
         type="button"
-        disabled={loading}
+        disabled={
+          loading ||
+          scanning
+        }
         onClick={() => {
           void refreshState();
         }}
@@ -132,8 +228,24 @@ function App() {
           : "Refresh status"}
       </button>
 
+      <button
+        className="secondary-button"
+        type="button"
+        disabled={
+          scanning ||
+          !extensionState.workdayDetected
+        }
+        onClick={() => {
+          void scanPage();
+        }}
+      >
+        {scanning
+          ? "Scanning..."
+          : "Scan Workday page"}
+      </button>
+
       <footer className="popup-footer">
-        Phase 5 · Extension Foundation
+        Phase 6 · Workday DOM Scanner
       </footer>
     </main>
   );
