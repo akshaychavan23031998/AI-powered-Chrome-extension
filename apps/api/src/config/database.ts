@@ -1,22 +1,57 @@
 import mongoose from "mongoose";
+
 import { env } from "./env.js";
 
-export const connectDatabase = async (): Promise<void> => {
-  try {
-    await mongoose.connect(env.MONGODB_URI);
+let connectionPromise: Promise<typeof mongoose> | null =
+  null;
 
-    console.log("MongoDB connected");
-  } catch (error) {
-    console.error("MongoDB connection failed");
-
-    if (error instanceof Error) {
-      console.error(error.message);
+export const connectDatabase =
+  async (): Promise<void> => {
+    if (
+      mongoose.connection.readyState === 1
+    ) {
+      return;
     }
 
-    throw error;
-  }
-};
+    if (!connectionPromise) {
+      connectionPromise =
+        mongoose.connect(
+          env.MONGODB_URI,
+        );
+    }
 
-export const disconnectDatabase = async (): Promise<void> => {
-  await mongoose.disconnect();
-};
+    try {
+      await connectionPromise;
+
+      console.log(
+        "MongoDB connected",
+      );
+    } catch (error) {
+      connectionPromise = null;
+
+      console.error(
+        "MongoDB connection failed",
+      );
+
+      if (
+        error instanceof Error
+      ) {
+        console.error(
+          error.message,
+        );
+      }
+
+      throw error;
+    }
+  };
+
+export const disconnectDatabase =
+  async (): Promise<void> => {
+    if (
+      mongoose.connection.readyState !== 0
+    ) {
+      await mongoose.disconnect();
+    }
+
+    connectionPromise = null;
+  };
