@@ -1,6 +1,22 @@
 import {
+  startDynamicPageObserver,
+} from "../dynamic/dynamic-page-observer";
+
+import {
   runAutofill,
 } from "../filler/autofill-engine";
+
+import {
+  autofillRepeatableSections,
+} from "../repeatable/repeatable-autofill-engine";
+
+import {
+  addRepeatableEntry,
+} from "../repeatable/repeatable-section-manager";
+
+import {
+  scanRepeatableSections,
+} from "../repeatable/repeatable-section-detector";
 
 import type {
   ExtensionMessage,
@@ -38,6 +54,8 @@ const notifyWorkdayDetection =
 console.log(
   "Workday AI Assistant content script loaded.",
 );
+
+startDynamicPageObserver();
 
 void notifyWorkdayDetection();
 
@@ -85,20 +103,16 @@ chrome.runtime.onMessage.addListener(
 
         sendResponse({
           success: true,
-          data: result,
+
+          data:
+            result,
         });
       } catch (error) {
-        console.error(
-          "Workday DOM scan failed:",
-          error,
-        );
-
         sendResponse({
           success: false,
 
           error:
-            error instanceof
-              Error
+            error instanceof Error
               ? error.message
               : "Unknown DOM scanning error.",
         });
@@ -122,7 +136,9 @@ chrome.runtime.onMessage.addListener(
 
           sendResponse({
             success: true,
-            data: result,
+
+            data:
+              result,
           });
         })
         .catch((error) => {
@@ -135,8 +151,7 @@ chrome.runtime.onMessage.addListener(
             success: false,
 
             error:
-              error instanceof
-                Error
+              error instanceof Error
                 ? error.message
                 : "Unknown autofill error.",
           });
@@ -144,6 +159,142 @@ chrome.runtime.onMessage.addListener(
 
       return true;
     }
+
+    if (
+      message.type ===
+      "RUN_DYNAMIC_SCAN"
+    ) {
+      try {
+        const result =
+          scanRepeatableSections();
+
+        console.log(
+          "Workday dynamic section scan completed:",
+          result,
+        );
+
+        sendResponse({
+          success: true,
+
+          data:
+            result,
+        });
+      } catch (error) {
+        console.error(
+          "Dynamic Workday section scan failed:",
+          error,
+        );
+
+        sendResponse({
+          success: false,
+
+          error:
+            error instanceof Error
+              ? error.message
+              : "Unable to scan dynamic Workday sections.",
+        });
+      }
+
+      return false;
+    }
+
+    if (
+      message.type ===
+      "RUN_ADD_REPEATABLE_ENTRY"
+    ) {
+      void addRepeatableEntry(
+        message.kind,
+      )
+        .then((result) => {
+          console.log(
+            "Repeatable Workday entry result:",
+            result,
+          );
+
+          sendResponse({
+            success: true,
+
+            data:
+              result,
+          });
+        })
+        .catch((error) => {
+          console.error(
+            "Adding repeatable Workday entry failed:",
+            error,
+          );
+
+          sendResponse({
+            success: false,
+
+            error:
+              error instanceof Error
+                ? error.message
+                : "Unable to add repeatable Workday entry.",
+          });
+        });
+
+      return true;
+    }
+
+    if (
+      message.type ===
+      "RUN_REPEATABLE_AUTOFILL"
+    ) {
+      console.log(
+        "Starting Workday repeatable autofill.",
+        {
+          experienceCount:
+            message.candidate
+              .experience
+              ?.length ?? 0,
+
+          educationCount:
+            message.candidate
+              .education
+              ?.length ?? 0,
+        },
+      );
+
+      void autofillRepeatableSections(
+        message.candidate,
+      )
+        .then((result) => {
+          console.log(
+            "Workday repeatable autofill completed:",
+            result,
+          );
+
+          sendResponse({
+            success: true,
+
+            data:
+              result,
+          });
+        })
+        .catch((error) => {
+          console.error(
+            "Workday repeatable autofill failed:",
+            error,
+          );
+
+          sendResponse({
+            success: false,
+
+            error:
+              error instanceof Error
+                ? error.message
+                : "Unable to autofill repeatable Workday sections.",
+          });
+        });
+
+      return true;
+    }
+
+    console.debug(
+      "Unhandled Workday content-script message:",
+      message,
+    );
 
     return false;
   },

@@ -142,7 +142,9 @@ h1 {
 }
 
 .secondary-button,
-.autofill-button {
+.autofill-button,
+.dynamic-scan-button,
+.repeatable-button {
   width: 100%;
 
   margin-top: 10px;
@@ -169,8 +171,24 @@ h1 {
   color: #052e16;
 }
 
+.dynamic-scan-button {
+  border: 1px solid #8b5cf6;
+
+  background: #312e81;
+  color: #ede9fe;
+}
+
+.repeatable-button {
+  border: 1px solid #6366f1;
+
+  background: #1e1b4b;
+  color: #e0e7ff;
+}
+
 .secondary-button:disabled,
-.autofill-button:disabled {
+.autofill-button:disabled,
+.dynamic-scan-button:disabled,
+.repeatable-button:disabled {
   cursor: not-allowed;
   opacity: 0.45;
 }
@@ -178,6 +196,7 @@ h1 {
 .scan-summary,
 .mapping-summary,
 .fill-summary,
+.dynamic-summary,
 .candidate-section {
   margin-top: 14px;
   padding: 14px;
@@ -290,7 +309,8 @@ h1 {
 }
 
 .mapping-list,
-.fill-list {
+.fill-list,
+.dynamic-list {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -299,7 +319,8 @@ h1 {
 }
 
 .mapping-row,
-.fill-row {
+.fill-row,
+.dynamic-row {
   display: flex;
   justify-content: space-between;
   gap: 8px;
@@ -355,6 +376,36 @@ h1 {
 
 .fill-status-failed {
   color: #ef4444;
+}
+
+.dynamic-row {
+  align-items: center;
+}
+
+.dynamic-row > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.dynamic-row strong {
+  color: #f8fafc;
+}
+
+.dynamic-row > div > span {
+  color: #94a3b8;
+}
+
+.dynamic-row > span {
+  flex-shrink: 0;
+
+  color: #a78bfa;
+}
+
+.repeatable-actions {
+  display: flex;
+  flex-direction: column;
 }
 
 .popup-footer {

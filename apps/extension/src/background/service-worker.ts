@@ -10,14 +10,21 @@ import {
 } from "../lib/storage";
 
 import type {
+  CandidateProfile,
+} from "../types/candidate";
+
+import type {
   FillInstruction,
 } from "../types/fill";
 
 import type {
+  AddRepeatableEntryResponse,
   AutofillResponse,
+  DynamicScanResponse,
   ExtensionMessage,
   MappingResponse,
   MessageResponse,
+  RepeatableAutofillResponse,
   ScanResponse,
 } from "../types/messages";
 
@@ -348,6 +355,212 @@ const autofillActiveTab =
     }
   };
 
+const scanDynamicSections =
+  async (): Promise<DynamicScanResponse> => {
+    const tab =
+      await getActiveTab();
+
+    if (!tab?.id) {
+      return {
+        success: false,
+
+        error:
+          "No active browser tab found.",
+      };
+    }
+
+    if (
+      !isWorkdayUrl(
+        tab.url,
+      )
+    ) {
+      return {
+        success: false,
+
+        error:
+          "Open a Workday page before detecting dynamic sections.",
+      };
+    }
+
+    try {
+      return (
+        await chrome.tabs.sendMessage(
+          tab.id,
+          {
+            type:
+              "RUN_DYNAMIC_SCAN",
+          },
+        )
+      ) as DynamicScanResponse;
+    } catch (error) {
+      console.error(
+        "Unable to detect dynamic Workday sections:",
+        error,
+      );
+
+      return {
+        success: false,
+
+        error:
+          "Unable to detect dynamic Workday sections. Refresh the page and try again.",
+      };
+    }
+  };
+
+const addRepeatableEntryOnActiveTab =
+  async (
+    kind:
+      Extract<
+        ExtensionMessage,
+        {
+          type:
+            "ADD_REPEATABLE_ENTRY";
+        }
+      >["kind"],
+  ): Promise<AddRepeatableEntryResponse> => {
+    const tab =
+      await getActiveTab();
+
+    if (!tab?.id) {
+      return {
+        success: false,
+
+        error:
+          "No active browser tab found.",
+      };
+    }
+
+    if (
+      !isWorkdayUrl(
+        tab.url,
+      )
+    ) {
+      return {
+        success: false,
+
+        error:
+          "Open a Workday page before adding a repeatable section.",
+      };
+    }
+
+    try {
+      return (
+        await chrome.tabs.sendMessage(
+          tab.id,
+          {
+            type:
+              "RUN_ADD_REPEATABLE_ENTRY",
+
+            kind,
+          },
+        )
+      ) as AddRepeatableEntryResponse;
+    } catch (error) {
+      console.error(
+        "Unable to add repeatable Workday entry:",
+        error,
+      );
+
+      return {
+        success: false,
+
+        error:
+          "Unable to add the repeatable Workday entry.",
+      };
+    }
+  };
+
+const autofillRepeatableSectionsOnActiveTab =
+  async (
+    candidateId:
+      string,
+  ): Promise<RepeatableAutofillResponse> => {
+    const tab =
+      await getActiveTab();
+
+    if (!tab?.id) {
+      return {
+        success: false,
+
+        error:
+          "No active browser tab found.",
+      };
+    }
+
+    if (
+      !isWorkdayUrl(
+        tab.url,
+      )
+    ) {
+      return {
+        success: false,
+
+        error:
+          "Open a Workday My Experience page before autofilling Experience and Education.",
+      };
+    }
+
+    try {
+      const response =
+        await fetch(
+          `http://localhost:4000/api/candidates/${encodeURIComponent(
+            candidateId,
+          )}`,
+        );
+
+      const payload =
+        (await response.json()) as {
+          success: boolean;
+
+          data?: CandidateProfile;
+
+          error?: string;
+        };
+
+      if (
+        !response.ok ||
+        !payload.success ||
+        !payload.data
+      ) {
+        return {
+          success: false,
+
+          error:
+            payload.error ??
+            "Unable to load candidate profile.",
+        };
+      }
+
+      return (
+        await chrome.tabs.sendMessage(
+          tab.id,
+          {
+            type:
+              "RUN_REPEATABLE_AUTOFILL",
+
+            candidate:
+              payload.data,
+          },
+        )
+      ) as RepeatableAutofillResponse;
+    } catch (error) {
+      console.error(
+        "Unable to autofill repeatable Workday sections:",
+        error,
+      );
+
+      return {
+        success: false,
+
+        error:
+          error instanceof
+            Error
+            ? error.message
+            : "Unable to autofill Experience and Education.",
+      };
+    }
+  };
+
 chrome.runtime.onMessage.addListener(
   (
     message:
@@ -491,6 +704,43 @@ chrome.runtime.onMessage.addListener(
       "AUTOFILL_WORKDAY_FIELDS"
     ) {
       void autofillActiveTab(
+        message.candidateId,
+      ).then(
+        sendResponse,
+      );
+
+      return true;
+    }
+
+    if (
+      message.type ===
+      "SCAN_DYNAMIC_SECTIONS"
+    ) {
+      void scanDynamicSections().then(
+        sendResponse,
+      );
+
+      return true;
+    }
+
+    if (
+      message.type ===
+      "ADD_REPEATABLE_ENTRY"
+    ) {
+      void addRepeatableEntryOnActiveTab(
+        message.kind,
+      ).then(
+        sendResponse,
+      );
+
+      return true;
+    }
+
+    if (
+      message.type ===
+      "AUTOFILL_REPEATABLE_SECTIONS"
+    ) {
+      void autofillRepeatableSectionsOnActiveTab(
         message.candidateId,
       ).then(
         sendResponse,
