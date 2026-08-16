@@ -7,7 +7,7 @@ import type {
 } from "../types/mapping";
 
 const API_BASE_URL =
-  "http://localhost:4000/api";
+  "https://ai-powered-chrome-extension-api.vercel.app/api";
 
 interface HealthResponse {
   success: boolean;

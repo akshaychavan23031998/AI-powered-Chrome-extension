@@ -22,6 +22,7 @@
 
   "host_permissions": [
     "http://localhost:4000/*",
+    "https://ai-powered-chrome-extension-api.vercel.app/*",
     "https://*.myworkdayjobs.com/*",
     "https://*.workday.com/*"
   ],
