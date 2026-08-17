@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Workday AI Application Assistant",
-  "version": "0.1.0",
-  "description": "AI-powered assistant for reviewing and autofilling Workday job applications.",
+  "version": "1.0.0",
+  "description": "AI-powered resume-aware assistant for safely reviewing and autofilling Workday job applications.",
 
   "action": {
     "default_popup": "index.html",
@@ -21,7 +21,6 @@
   ],
 
   "host_permissions": [
-    "http://localhost:4000/*",
     "https://ai-powered-chrome-extension-api.vercel.app/*",
     "https://*.myworkdayjobs.com/*",
     "https://*.workday.com/*"

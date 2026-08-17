@@ -1,5 +1,6 @@
 import {
   checkBackendHealth,
+  getCandidateProfile,
   mapFields,
 } from "../lib/api";
 
@@ -8,10 +9,6 @@ import {
   resetExtensionState,
   updateExtensionState,
 } from "../lib/storage";
-
-import type {
-  CandidateProfile,
-} from "../types/candidate";
 
 import type {
   FillInstruction,
@@ -434,6 +431,7 @@ const addRepeatableEntryOnActiveTab =
           {
             type:
               "RUN_ADD_REPEATABLE_ENTRY",
+
             kind,
           },
         )
@@ -470,32 +468,10 @@ const autofillRepeatableSectionsOnActiveTab =
     }
 
     try {
-      const response =
-        await fetch(
-          `http://localhost:4000/api/candidates/${encodeURIComponent(
-            candidateId,
-          )}`,
+      const candidate =
+        await getCandidateProfile(
+          candidateId,
         );
-
-      const payload =
-        (await response.json()) as {
-          success: boolean;
-          data?: CandidateProfile;
-          error?: string;
-        };
-
-      if (
-        !response.ok ||
-        !payload.success ||
-        !payload.data
-      ) {
-        return {
-          success: false,
-          error:
-            payload.error ??
-            "Unable to load candidate profile.",
-        };
-      }
 
       return (
         await chrome.tabs.sendMessage(
@@ -504,8 +480,7 @@ const autofillRepeatableSectionsOnActiveTab =
             type:
               "RUN_REPEATABLE_AUTOFILL",
 
-            candidate:
-              payload.data,
+            candidate,
           },
         )
       ) as RepeatableAutofillResponse;

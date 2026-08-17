@@ -1,4 +1,8 @@
 import type {
+  CandidateProfile,
+} from "../types/candidate";
+
+import type {
   DomFieldDescriptor,
 } from "../types/dom-field";
 
@@ -29,6 +33,16 @@ interface MappingApiResponse {
   message: string;
 
   data: FieldMappingResult;
+}
+
+interface CandidateApiResponse {
+  success: boolean;
+
+  data?: CandidateProfile;
+
+  message?: string;
+
+  error?: string;
 }
 
 export const checkBackendHealth =
@@ -96,6 +110,35 @@ export const mapFields =
         data.message
           ? data.message
           : "Field mapping failed.",
+      );
+    }
+
+    return data.data;
+  };
+
+export const getCandidateProfile =
+  async (
+    candidateId: string,
+  ): Promise<CandidateProfile> => {
+    const response =
+      await fetch(
+        `${API_BASE_URL}/candidates/${encodeURIComponent(
+          candidateId,
+        )}`,
+      );
+
+    const data =
+      (await response.json()) as CandidateApiResponse;
+
+    if (
+      !response.ok ||
+      !data.success ||
+      !data.data
+    ) {
+      throw new Error(
+        data.message ??
+          data.error ??
+          "Unable to load candidate profile.",
       );
     }
 
