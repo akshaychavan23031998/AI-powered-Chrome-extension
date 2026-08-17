@@ -17,6 +17,10 @@ import {
 } from "./components/MappingSummary";
 
 import {
+  PrivacyNotice,
+} from "./components/PrivacyNotice";
+
+import {
   ScanSummary,
 } from "./components/ScanSummary";
 
@@ -1017,17 +1021,6 @@ function App() {
       }
     };
 
-  /*
-   * Initial popup state load.
-   *
-   * Keep this separate from refreshState().
-   * React's set-state-in-effect lint rule does not want us
-   * synchronously invoking another state-updating callback
-   * directly from the effect body.
-   *
-   * The Chrome message is asynchronous, so state updates occur
-   * after the external system responds.
-   */
   useEffect(() => {
     let cancelled =
       false;
@@ -1953,8 +1946,10 @@ function App() {
           : "Scan Final Review"}
       </button>
 
+      <PrivacyNotice />
+
       <footer className="popup-footer">
-        Phase 14 · Testing & Safety Hardening
+        Workday AI Assistant · v1.0.0
       </footer>
     </main>
   );

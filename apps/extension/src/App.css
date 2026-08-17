@@ -408,6 +408,50 @@ h1 {
   flex-direction: column;
 }
 
+.privacy-notice {
+  margin-top: 18px;
+  padding: 14px;
+
+  border: 1px solid #334155;
+  border-radius: 12px;
+
+  background: #111827;
+}
+
+.privacy-title {
+  margin: 0;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  color: #e2e8f0;
+}
+
+.privacy-text {
+  margin: 8px 0 0;
+
+  font-size: 10px;
+  line-height: 1.5;
+
+  color: #94a3b8;
+}
+
+.privacy-link {
+  display: inline-block;
+
+  margin-top: 10px;
+
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+
+  color: #38bdf8;
+}
+
+.privacy-link:hover {
+  text-decoration: underline;
+}
+
 .popup-footer {
   margin-top: 24px;
 
