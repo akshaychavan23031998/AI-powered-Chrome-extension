@@ -9,37 +9,155 @@ The system combines:
 - Node.js + Express
 - MongoDB Atlas
 - Google Gemini
-- Resume parsing for PDF and DOCX
-- Semantic field mapping
+- PDF and DOCX resume processing
+- Structured candidate profile generation
+- Automatic candidate onboarding
+- Semantic Workday field mapping
 - Workday DOM automation
+- Confidence-aware safe autofill
 - Dynamic/repeatable section handling
 - Multi-step navigation
 - Validation and error recovery
-- Final review and explicit user confirmation before submission
+- Final review
+- Explicit user confirmation before submission
+
+> **Core principle:** Heuristics first, AI second, user review when uncertain.
 
 ---
 
-# Live Links
+# 🚀 Latest Release
 
-## Backend API
+## Workday AI Application Assistant v1.0.0
 
-**Production API**
+The packaged Chrome extension is available as a free GitHub Release.
+
+### Download
+
+[Download Workday AI Application Assistant v1.0.0](https://github.com/akshaychavan23031998/AI-powered-Chrome-extension/releases/tag/v1.0.0)
+
+Release asset:
+
+```text
+workday-ai-assistant-v1.0.0.zip
+```
+
+The extension is currently distributed through GitHub rather than the Chrome Web Store.
+
+Chrome **Developer Mode** is therefore required for installation.
+
+---
+
+# 📦 Install the Chrome Extension
+
+## Option 1 — GitHub Release
+
+1. Open the latest GitHub Release:
+
+   [Workday AI Application Assistant v1.0.0](https://github.com/akshaychavan23031998/AI-powered-Chrome-extension/releases/tag/v1.0.0)
+
+2. Download:
+
+   ```text
+   workday-ai-assistant-v1.0.0.zip
+   ```
+
+3. Extract the ZIP.
+
+4. Open Google Chrome.
+
+5. Visit:
+
+   ```text
+   chrome://extensions
+   ```
+
+6. Enable:
+
+   ```text
+   Developer mode
+   ```
+
+7. Click:
+
+   ```text
+   Load unpacked
+   ```
+
+8. Select the extracted extension directory containing:
+
+   ```text
+   manifest.json
+   background.js
+   content.js
+   index.html
+   assets/
+   icons/
+   ```
+
+9. Pin **Workday AI Application Assistant** to the Chrome toolbar.
+
+---
+
+## Option 2 — Build from Source
+
+Clone the repository:
+
+```bash
+git clone https://github.com/akshaychavan23031998/AI-powered-Chrome-extension.git
+```
+
+Enter the project:
+
+```bash
+cd "AI-powered-Chrome-extension"
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Build the extension:
+
+```bash
+npm run build:extension
+```
+
+Then load:
+
+```text
+apps/extension/dist
+```
+
+through:
+
+```text
+chrome://extensions
+→ Developer mode
+→ Load unpacked
+```
+
+---
+
+# 🌐 Live Links
+
+## Production Backend
 
 [https://ai-powered-chrome-extension-api.vercel.app](https://ai-powered-chrome-extension-api.vercel.app)
 
-**Health Check**
+## Health Endpoint
 
 [https://ai-powered-chrome-extension-api.vercel.app/api/health](https://ai-powered-chrome-extension-api.vercel.app/api/health)
 
-A healthy deployment should return something similar to:
+A healthy deployment returns a response similar to:
 
 ```json
 {
   "success": true,
   "service": "workday-ai-api",
   "status": "healthy",
-  "database": "connected",
-  "timestamp": "2026-08-16T18:24:32.497Z"
+  "database": "connected"
 }
 ```
 
@@ -51,11 +169,47 @@ A healthy deployment should return something similar to:
 
 ---
 
+## GitHub Release
+
+[Workday AI Application Assistant v1.0.0](https://github.com/akshaychavan23031998/AI-powered-Chrome-extension/releases/tag/v1.0.0)
+
+---
+
+## Privacy Policy
+
+[PRIVACY_POLICY.md](./PRIVACY_POLICY.md)
+
+---
+
 ## Portfolio
 
-To explore more of my projects, engineering work, technical skills, and experience:
-
 [Akshay Chavan — Portfolio](https://akshay-chavan-portfolio.vercel.app/)
+
+---
+
+# 🎥 Demo Video
+
+```text
+Coming soon
+```
+
+The final demo will cover:
+
+1. GitHub Release installation
+2. Loading the extension in Chrome
+3. Uploading a PDF resume
+4. AI-powered candidate profile creation
+5. Candidate profile persistence
+6. Workday page detection
+7. DOM scanning
+8. Semantic field mapping
+9. Safe autofill
+10. Dynamic Experience and Education sections
+11. Question detection
+12. Validation
+13. Navigation
+14. Final review
+15. Explicit submission confirmation
 
 ---
 
@@ -70,79 +224,119 @@ To explore more of my projects, engineering work, technical skills, and experien
 7. [End-to-End Flow](#end-to-end-flow)
 8. [AI Strategy](#ai-strategy)
 9. [Resume Parsing](#resume-parsing)
-10. [Candidate Profile](#candidate-profile)
-11. [Chrome Extension Architecture](#chrome-extension-architecture)
-12. [Workday DOM Automation](#workday-dom-automation)
-13. [Semantic Field Mapping](#semantic-field-mapping)
-14. [Safe Autofill](#safe-autofill)
-15. [Dynamic and Repeatable Sections](#dynamic-and-repeatable-sections)
-16. [Multi-Step Navigation](#multi-step-navigation)
-17. [Questions and EEO Handling](#questions-and-eeo-handling)
-18. [Validation and Error Recovery](#validation-and-error-recovery)
-19. [Review and Submission Safety](#review-and-submission-safety)
-20. [Repository Structure](#repository-structure)
-21. [Local Development Setup](#local-development-setup)
-22. [Environment Variables](#environment-variables)
-23. [Running the Backend](#running-the-backend)
-24. [Building the Chrome Extension](#building-the-chrome-extension)
-25. [Loading the Extension in Chrome](#loading-the-extension-in-chrome)
-26. [Backend API](#backend-api)
-27. [Production Deployment](#production-deployment)
-28. [Testing](#testing)
-29. [Security](#security)
-30. [Phase-by-Phase Development History](#phase-by-phase-development-history)
-31. [Known Limitations](#known-limitations)
-32. [Future Improvements](#future-improvements)
-33. [Demo Flow](#demo-flow)
-34. [Final Submission Checklist](#final-submission-checklist)
-35. [Author](#author)
+10. [Candidate Onboarding](#candidate-onboarding)
+11. [Candidate Profile](#candidate-profile)
+12. [Chrome Extension Architecture](#chrome-extension-architecture)
+13. [Workday DOM Automation](#workday-dom-automation)
+14. [Semantic Field Mapping](#semantic-field-mapping)
+15. [Safe Autofill](#safe-autofill)
+16. [Dynamic and Repeatable Sections](#dynamic-and-repeatable-sections)
+17. [Multi-Step Navigation](#multi-step-navigation)
+18. [Questions and EEO Handling](#questions-and-eeo-handling)
+19. [Validation and Error Recovery](#validation-and-error-recovery)
+20. [Review and Submission Safety](#review-and-submission-safety)
+21. [Repository Structure](#repository-structure)
+22. [Local Development Setup](#local-development-setup)
+23. [Environment Variables](#environment-variables)
+24. [Running the Backend](#running-the-backend)
+25. [Building the Chrome Extension](#building-the-chrome-extension)
+26. [Loading the Extension in Chrome](#loading-the-extension-in-chrome)
+27. [Backend API](#backend-api)
+28. [Production Deployment](#production-deployment)
+29. [Testing](#testing)
+30. [Security and Privacy](#security-and-privacy)
+31. [Phase-by-Phase Development History](#phase-by-phase-development-history)
+32. [Known Limitations](#known-limitations)
+33. [Future Improvements](#future-improvements)
+34. [Demo Flow](#demo-flow)
+35. [Final Submission Checklist](#final-submission-checklist)
+36. [Important Development Commands](#important-development-commands)
+37. [Engineering Principles](#engineering-principles)
+38. [Author](#author)
 
 ---
 
 # Project Overview
 
-The **Workday AI Application Assistant** is an AI-powered Chrome extension designed to reduce the repetitive work involved in completing Workday job applications.
+The **Workday AI Application Assistant** is an AI-powered Chrome extension designed to reduce repetitive work involved in completing Workday job applications.
 
-Instead of blindly filling fields, the system first understands the candidate.
+Instead of blindly filling form fields, the system first understands the candidate from their resume.
 
-It:
+The workflow is:
 
-1. accepts a PDF or DOCX resume,
-2. extracts the resume text,
-3. sends the text to Google Gemini,
-4. converts the resume into structured candidate JSON,
-5. validates that JSON using Zod,
-6. stores the profile in MongoDB,
-7. scans a Workday application page,
-8. understands the semantic meaning of fields,
-9. maps candidate information to those fields,
-10. fills only sufficiently confident fields,
-11. validates the page,
-12. handles dynamic sections and multi-step workflows,
-13. pauses for uncertain or sensitive questions,
-14. shows a final review,
-15. requires explicit user confirmation before submission.
+```text
+Resume
+   ↓
+PDF / DOCX extraction
+   ↓
+Google Gemini
+   ↓
+Structured Candidate Profile
+   ↓
+Zod Validation
+   ↓
+MongoDB
+   ↓
+Chrome Extension
+   ↓
+Workday DOM Scanner
+   ↓
+Semantic Field Mapper
+   ↓
+Safe Autofill
+   ↓
+Validation
+   ↓
+Navigation
+   ↓
+Final Review
+   ↓
+Explicit User Confirmation
+```
 
-The system follows a core principle:
+The system:
 
-> **Heuristics first, AI second, user review when uncertain.**
+1. accepts a PDF or DOCX resume directly through the Chrome extension,
+2. uploads it to the backend,
+3. extracts readable resume text,
+4. sends the extracted text to Google Gemini,
+5. converts unstructured resume content into structured candidate JSON,
+6. validates and normalizes that data,
+7. stores the profile in MongoDB,
+8. automatically stores the returned candidate reference inside the extension,
+9. displays a user-friendly Candidate Profile,
+10. scans a Workday application page,
+11. understands the semantic meaning of fields,
+12. maps candidate information to those fields,
+13. fills only sufficiently confident and safe mappings,
+14. avoids unnecessary overwriting of valid prefilled values,
+15. handles dynamic sections and multi-step workflows,
+16. pauses for uncertain or sensitive questions,
+17. validates the current step,
+18. scans the final review,
+19. requires explicit user confirmation before submission.
 
 The goal is not uncontrolled browser automation.
 
-The goal is **safe, explainable, resume-aware job application assistance**.
+The goal is:
+
+> **Safe, explainable, resume-aware job application assistance while keeping the candidate in control.**
 
 ---
 
 # Problem Statement
 
-Job applicants regularly enter the same information across Workday applications:
+Job applicants repeatedly enter similar information across Workday applications:
 
-- name
+- first name
+- middle name
+- last name
 - email
-- phone number
-- address
+- phone
+- location
 - LinkedIn
 - GitHub
+- portfolio
 - work experience
 - education
 - skills
@@ -150,9 +344,11 @@ Job applicants regularly enter the same information across Workday applications:
 - employment dates
 - application questions
 
-Several problems make this harder than ordinary form autofill:
+Traditional browser autofill is not sufficient because Workday forms are dynamic and semantically inconsistent.
 
-### 1. Different field wording
+---
+
+## 1. Different Field Wording
 
 The same information may appear as:
 
@@ -163,27 +359,28 @@ Legal First Name
 Preferred First Name
 ```
 
-A simple selector-based autofill system cannot understand these differences reliably.
+A selector-only autofill system cannot reliably understand these differences.
 
 ---
 
-### 2. Dynamic forms
+## 2. Dynamic Forms
 
 Workday frequently renders content asynchronously.
 
 Fields may appear after:
 
-- page transitions,
-- button clicks,
-- modal interactions,
-- section expansion,
-- repeatable item creation.
+- page transitions
+- button clicks
+- modal interactions
+- section expansion
+- repeatable item creation
+- asynchronous rendering
 
 ---
 
-### 3. Multi-step workflows
+## 3. Multi-Step Workflows
 
-Applications often contain steps such as:
+Applications may contain:
 
 ```text
 My Information
@@ -194,15 +391,15 @@ Voluntary Disclosures
 Review
 ```
 
-Automation therefore requires state awareness.
+Automation therefore requires awareness of the current application step.
 
 ---
 
-### 4. Repeatable sections
+## 4. Repeatable Sections
 
-Experience and education are not single fields.
+Experience and education are collections rather than single fields.
 
-They are collections:
+Example:
 
 ```text
 Experience 1
@@ -211,33 +408,33 @@ Experience 3
 ...
 ```
 
-The automation needs to detect existing entries and safely create additional entries.
+The extension needs to inspect existing entries and safely create additional entries when appropriate.
 
 ---
 
-### 5. Sensitive questions
+## 5. Sensitive Questions
 
-Some application questions should not be inferred.
+Some information should never be guessed.
 
-Examples:
+Examples include:
 
-- disability
+- disability status
 - veteran status
 - gender
-- race/ethnicity
-- sponsorship
+- race or ethnicity
+- voluntary demographic disclosures
 - legal declarations
-- voluntary disclosures
+- sponsorship information when unknown
 
-These require a conservative strategy.
+The extension uses conservative handling for these fields.
 
 ---
 
-### 6. Final submission is irreversible
+## 6. Final Submission Is Irreversible
 
-The extension must never automatically submit an application without the candidate knowing exactly what is happening.
+The extension must not silently submit an application.
 
-Therefore this project requires:
+The required workflow is:
 
 ```text
 Final Review
@@ -251,63 +448,86 @@ Submit
 
 # Solution
 
-The system is divided into two major applications.
+The project contains two main applications.
 
 ```text
-┌───────────────────────────────────────┐
-│          Chrome Extension             │
-│                                       │
-│ React Popup                           │
-│ Background Service Worker             │
-│ Content Script                        │
-│ Workday Scanner                       │
-│ Field Mapper                          │
-│ Autofill Engine                       │
-│ Navigator                             │
-│ Validation Engine                     │
-│ Review + Submission Guard             │
-└──────────────────┬────────────────────┘
-                   │
-                   │ HTTPS
-                   ▼
-┌───────────────────────────────────────┐
-│              Backend API              │
-│                                       │
-│ Node.js                               │
-│ Express                               │
-│ TypeScript                            │
-│ Resume Parser                         │
-│ Gemini Integration                    │
-│ Candidate Services                    │
-│ Field Mapping API                     │
-└──────────────────┬────────────────────┘
-                   │
-           ┌───────┴────────┐
-           │                │
-           ▼                ▼
-     MongoDB Atlas      Google Gemini
+┌─────────────────────────────────────────┐
+│            Chrome Extension             │
+│                                         │
+│ React Popup                             │
+│ Resume Onboarding                       │
+│ Background Service Worker               │
+│ Content Script                          │
+│ Workday Scanner                         │
+│ Semantic Mapper                         │
+│ Safe Autofill Engine                    │
+│ Repeatable Section Handler              │
+│ Navigator                               │
+│ Validator                               │
+│ Final Review                            │
+│ Submission Guard                        │
+└───────────────────┬─────────────────────┘
+                    │
+                    │ HTTPS
+                    ▼
+┌─────────────────────────────────────────┐
+│               Backend API               │
+│                                         │
+│ Node.js                                 │
+│ Express                                 │
+│ TypeScript                              │
+│ Resume Upload                           │
+│ PDF / DOCX Parser                       │
+│ Gemini Integration                      │
+│ Candidate Service                       │
+│ Field Mapping API                       │
+└───────────────────┬─────────────────────┘
+                    │
+             ┌──────┴───────┐
+             │              │
+             ▼              ▼
+       MongoDB Atlas   Google Gemini
 ```
 
 ---
 
 # Core Features
 
+## Resume Upload from the Extension
+
+Users can upload:
+
+```text
+PDF
+DOCX
+```
+
+directly from the Chrome extension popup.
+
+No MongoDB Candidate ID needs to be manually entered.
+
+---
+
 ## Resume Processing
+
+Includes:
 
 - PDF support
 - DOCX support
+- MIME/extension detection
 - file validation
 - file-size protection
 - raw text extraction
 - whitespace normalization
+- structured resume metadata
 
 ---
 
 ## AI Resume Understanding
 
-Gemini converts unstructured resume text into structured candidate data.
+Google Gemini converts unstructured resume text into structured candidate information.
 
-Extracted information includes:
+Potential extracted data includes:
 
 - first name
 - middle name
@@ -328,25 +548,91 @@ Extracted information includes:
 
 ## Candidate Persistence
 
-Structured profiles are validated and persisted using:
+Candidate profiles flow through:
 
 ```text
+Resume
+   ↓
+Parser
+   ↓
 Gemini
-  ↓
+   ↓
 Zod
-  ↓
+   ↓
 Normalizer
-  ↓
+   ↓
 Mongoose
-  ↓
+   ↓
 MongoDB Atlas
 ```
 
 ---
 
-## Workday Detection
+## Automatic Candidate Onboarding
 
-The extension identifies supported Workday pages.
+After resume processing succeeds:
+
+```text
+Backend
+   ↓
+Candidate created
+   ↓
+Internal candidateId returned
+   ↓
+chrome.storage.local
+   ↓
+Candidate Profile shown in popup
+```
+
+Users do not need to:
+
+```text
+Copy a MongoDB ObjectId
+Paste a Candidate ID
+Manage database identifiers
+```
+
+---
+
+## Candidate Profile UI
+
+The popup can display a friendly summary such as:
+
+```text
+Candidate Profile
+
+✓ Resume ready
+
+AKSHAY RAM CHAVAN
+
+Software Development Engineer I
+
+candidate@example.com
+
+React.js · Next.js · TypeScript · JavaScript
+
+Resume: candidate-resume.pdf
+
+Replace Resume
+```
+
+---
+
+## Resume Replacement
+
+Users can select:
+
+```text
+Replace Resume
+```
+
+and process a new PDF or DOCX resume.
+
+For v1, processing a replacement resume creates a new candidate profile and updates the candidate reference stored by the extension.
+
+---
+
+## Workday Detection
 
 Supported host patterns include:
 
@@ -355,11 +641,13 @@ Supported host patterns include:
 *.workday.com
 ```
 
+The popup reports whether the active page is recognized as a supported Workday page.
+
 ---
 
 ## DOM Scanner
 
-The extension scans supported controls including:
+The extension scans controls including:
 
 - input
 - textarea
@@ -367,16 +655,16 @@ The extension scans supported controls including:
 - radio
 - checkbox
 - date-like controls
-- buttons
 - labels
 - ARIA metadata
+- buttons
 - repeatable sections
 
 ---
 
 ## Semantic Mapping
 
-The mapper considers:
+The mapping engine considers:
 
 ```text
 Field label
@@ -385,9 +673,10 @@ Field description
 Placeholder
 ARIA labels
 Candidate profile
+Existing value
 ```
 
-The system first attempts deterministic mapping.
+Deterministic mapping is attempted first.
 
 AI is used when semantic interpretation is required.
 
@@ -395,9 +684,18 @@ AI is used when semantic interpretation is required.
 
 ## Safe Autofill
 
-Autofill only happens when confidence is sufficiently high.
+Autofill considers:
 
-The system avoids overwriting valid existing values.
+```text
+candidate value
+confidence
+shouldFill
+field type
+existing value
+sensitivity
+```
+
+The system prefers leaving a field untouched rather than filling an uncertain value.
 
 ---
 
@@ -407,28 +705,33 @@ Includes support for:
 
 - delayed rendering
 - MutationObserver
+- dynamic field appearance
 - repeatable Experience sections
 - repeatable Education sections
 - add-entry controls
 
 ---
 
-## Navigation
+## Multi-Step Navigation
 
-The system can detect and reason about:
+The extension can reason about:
 
-- current step
-- Continue
-- Next
-- Back
-- Review
-- Submit
+```text
+Current step
+Continue
+Next
+Back
+Review
+Submit
+```
+
+Navigation remains separate from field filling.
 
 ---
 
 ## Questions
 
-Application questions are classified before answering.
+Application questions are classified before being answered.
 
 Sensitive or uncertain questions are intentionally left for manual review.
 
@@ -436,7 +739,7 @@ Sensitive or uncertain questions are intentionally left for manual review.
 
 ## Validation
 
-Before continuing, the extension can detect:
+The extension can detect:
 
 - required missing fields
 - visible validation errors
@@ -447,15 +750,15 @@ Before continuing, the extension can detect:
 
 ## Final Review
 
-The final application step is treated separately.
-
-The extension must not silently submit an application.
+The final application step receives additional safety handling.
 
 Submission requires:
 
-```text
+```ts
 explicitlyConfirmed === true
 ```
+
+No confirmation means no automated submission action.
 
 ---
 
@@ -466,7 +769,7 @@ explicitlyConfirmed === true
 - React
 - TypeScript
 - Vite
-- Manifest V3
+- Chrome Manifest V3
 - Chrome Runtime API
 - Chrome Storage API
 - Chrome Tabs API
@@ -490,9 +793,9 @@ explicitlyConfirmed === true
 - Google Gemini
 - `@google/genai`
 - structured JSON output
-- low-temperature deterministic extraction
+- low-temperature resume extraction strategy
 
-Current configured model:
+Configured model:
 
 ```text
 gemini-2.5-flash
@@ -503,7 +806,7 @@ gemini-2.5-flash
 ## Database
 
 - MongoDB Atlas
-- Mongoose ODM
+- Mongoose
 
 ---
 
@@ -512,8 +815,16 @@ gemini-2.5-flash
 ### PDF
 
 ```text
-pdfjs-dist
+pdf-parse
 ```
+
+Current backend dependency:
+
+```text
+pdf-parse ^2.4.5
+```
+
+The PDF parser is lazy-loaded in the PDF processing path to improve compatibility with the Vercel serverless runtime.
 
 ### DOCX
 
@@ -528,9 +839,10 @@ mammoth
 - TypeScript compiler
 - Vitest
 - Playwright
-- safety/regression tests
-- runtime API tests
-- manual Workday verification
+- regression testing
+- safety testing
+- runtime API testing
+- manual extension verification
 
 ---
 
@@ -551,7 +863,15 @@ MongoDB Atlas
 Chrome extension:
 
 ```text
-Manifest V3 unpacked build
+GitHub Release
++
+Manifest V3 unpacked installation
+```
+
+Current release:
+
+```text
+v1.0.0
 ```
 
 ---
@@ -567,12 +887,12 @@ Manifest V3 unpacked build
                                    ▼
                          ┌────────────────────┐
                          │   Resume Parser    │
-                         │ PDF.js / Mammoth   │
+                         │ pdf-parse/Mammoth  │
                          └─────────┬──────────┘
                                    │
                                    ▼
                          ┌────────────────────┐
-                         │   Raw Resume Text  │
+                         │  Raw Resume Text   │
                          └─────────┬──────────┘
                                    │
                                    ▼
@@ -584,7 +904,7 @@ Manifest V3 unpacked build
                                    ▼
                          ┌────────────────────┐
                          │ Structured Candidate│
-                         │        JSON        │
+                         │       JSON         │
                          └─────────┬──────────┘
                                    │
                                    ▼
@@ -597,12 +917,14 @@ Manifest V3 unpacked build
                          │   MongoDB Atlas    │
                          └─────────┬──────────┘
                                    │
-                                   │ Candidate ID
+                         Internal Candidate Ref
+                                   │
                                    ▼
 ┌────────────────────────────────────────────────────────┐
-│                  Chrome Extension                      │
+│                   Chrome Extension                     │
 │                                                        │
-│ Popup → Background → Content Script → Workday DOM     │
+│ Candidate Profile → Background → Content Script       │
+│                                → Workday DOM           │
 └──────────────────────────┬─────────────────────────────┘
                            │
                            ▼
@@ -617,22 +939,22 @@ Manifest V3 unpacked build
                            │
                            ▼
                  ┌───────────────────┐
-                 │  Safe Autofill    │
+                 │   Safe Autofill   │
                  └─────────┬─────────┘
                            │
                            ▼
                  ┌───────────────────┐
-                 │    Validator      │
+                 │     Validator     │
                  └─────────┬─────────┘
                            │
                            ▼
                  ┌───────────────────┐
-                 │    Navigator      │
+                 │     Navigator     │
                  └─────────┬─────────┘
                            │
                            ▼
                  ┌───────────────────┐
-                 │  Final Review     │
+                 │   Final Review    │
                  └─────────┬─────────┘
                            │
                            ▼
@@ -650,45 +972,68 @@ Manifest V3 unpacked build
 
 # End-to-End Flow
 
-## Step 1 — Resume upload
+## Step 1 — Resume Selection
 
-Candidate uploads:
+The user opens the Chrome extension and selects:
 
 ```text
-resume.pdf
+Choose Resume
 ```
 
-or:
+Supported formats:
 
 ```text
-resume.docx
+PDF
+DOCX
 ```
 
 ---
 
-## Step 2 — Text extraction
+## Step 2 — Resume Upload
+
+The extension sends the selected file to:
+
+```http
+POST /api/ai/resumes/parse
+```
+
+Multipart field:
+
+```text
+resume
+```
+
+---
+
+## Step 3 — Text Extraction
+
+PDF:
 
 ```text
 PDF
  ↓
-pdfjs-dist
+pdf-parse
+ ↓
+Extracted text
 ```
 
-or:
+DOCX:
 
 ```text
 DOCX
  ↓
 Mammoth
+ ↓
+Extracted text
 ```
 
 ---
 
-## Step 3 — AI understanding
+## Step 4 — AI Understanding
 
 Raw text is sent to Gemini.
 
-Example input:
+Example:
 
 ```text
 SuperAGI
@@ -697,9 +1042,7 @@ Nov 2025 - Apr 2026
 ...
 ```
 
-Gemini converts this into structured JSON.
-
-Example:
+Gemini converts it into structured information such as:
 
 ```json
 {
@@ -713,49 +1056,75 @@ Example:
 
 ---
 
-## Step 4 — Validation
+## Step 5 — Validation and Normalization
 
-Gemini output is never trusted blindly.
+AI output is not blindly trusted.
 
 ```text
 Gemini Output
      ↓
-Zod Validation
+Schema Validation
      ↓
 Candidate Normalizer
 ```
 
-Malformed data is rejected.
+Invalid structures are rejected.
 
 ---
 
-## Step 5 — Persistence
+## Step 6 — Persistence
 
-Validated candidate data is stored in MongoDB.
+The validated candidate profile is stored in MongoDB.
 
-A candidate receives a unique MongoDB ID.
-
-Example:
+The backend returns:
 
 ```text
-6a80b0cf3963d566352325e8
+candidateId
+profile
+```
+
+to the extension.
+
+---
+
+## Step 7 — Automatic Extension Onboarding
+
+The internal candidate ID is automatically stored in:
+
+```text
+chrome.storage.local
+```
+
+The user does not manually see or enter the database identifier.
+
+Instead, the extension displays:
+
+```text
+✓ Resume ready
+Candidate name
+Current/recent title
+Email
+Skills
+Resume filename
 ```
 
 ---
 
-## Step 6 — Extension loads candidate
+## Step 8 — Workday Detection
 
-The candidate ID is entered/saved through the extension popup.
+The user opens a supported Workday job application.
 
----
-
-## Step 7 — Workday scanning
-
-Content scripts scan the current Workday page.
+The extension determines whether the active tab is a supported Workday page.
 
 ---
 
-## Step 8 — Field mapping
+## Step 9 — Workday Scanning
+
+The content script scans the application DOM.
+
+---
+
+## Step 10 — Field Mapping
 
 The scanner produces normalized field metadata.
 
@@ -769,33 +1138,62 @@ Candidate Profile
 
 ---
 
-## Step 9 — Safe autofill
+## Step 11 — Safe Autofill
 
-Only high-confidence mappings are automatically filled.
+Only sufficiently confident mappings are automatically filled.
 
----
-
-## Step 10 — Validation
-
-The page is checked before navigation.
+Valid existing values should not be unnecessarily overwritten.
 
 ---
 
-## Step 11 — Navigation
+## Step 12 — Dynamic Sections
 
-The extension continues through Workday steps.
-
----
-
-## Step 12 — Final review
-
-The candidate reviews the application.
+Experience and Education repeatable sections can be detected and handled separately.
 
 ---
 
-## Step 13 — Submission
+## Step 13 — Questions
 
-Submission only occurs after explicit confirmation.
+Application questions are scanned and classified.
+
+Unknown or sensitive questions remain for manual user input.
+
+---
+
+## Step 14 — Validation
+
+The current Workday step is checked for:
+
+```text
+Missing required fields
+Visible validation errors
+Invalid states
+```
+
+---
+
+## Step 15 — Navigation
+
+The extension can identify navigation controls such as:
+
+```text
+Continue
+Next
+Back
+Review
+```
+
+---
+
+## Step 16 — Final Review
+
+The application is scanned before the final submission action.
+
+---
+
+## Step 17 — Submission Safety
+
+Submission is only permitted after explicit user confirmation.
 
 ---
 
@@ -803,7 +1201,7 @@ Submission only occurs after explicit confirmation.
 
 AI is not used for everything.
 
-The architecture deliberately follows:
+The architecture follows:
 
 ```text
 Deterministic rules
@@ -812,7 +1210,7 @@ Heuristics
        ↓
 AI semantic reasoning
        ↓
-Confidence score
+Confidence
        ↓
 User review when uncertain
 ```
@@ -824,38 +1222,108 @@ This reduces:
 - latency
 - cost
 - unsafe autofill
+- incorrect sensitive answers
 
 ---
 
 # Resume Parsing
 
-Two parser paths exist.
+Two parser paths are supported.
 
 ## PDF
 
-PDF documents are processed with PDF.js.
+PDF documents are processed using:
 
-The parser extracts text from each page and combines it.
+```text
+pdf-parse
+```
+
+The PDF parser extracts textual resume content and normalizes whitespace before AI processing.
+
+The PDF library is loaded only when a PDF needs to be processed.
+
+This avoids unnecessarily loading PDF-specific runtime dependencies for DOCX requests.
 
 ---
 
 ## DOCX
 
-DOCX files are processed using Mammoth.
+DOCX files are processed using:
 
-Because Windows uploads may report DOCX files as:
+```text
+mammoth
+```
+
+Windows and some HTTP clients may upload DOCX files with a MIME type such as:
 
 ```text
 application/octet-stream
 ```
 
-the upload system also considers safe filename extension validation.
+The parser therefore considers both:
+
+```text
+MIME type
++
+safe filename extension
+```
+
+when identifying supported resume formats.
+
+---
+
+## Extraction Artifacts
+
+Highly visual resumes may contain PDF/DOCX extraction artifacts.
+
+Examples can include unusual characters originating from:
+
+- icons
+- custom fonts
+- hyperlink symbols
+- layout positioning
+
+The AI parsing layer attempts to recover structured information from readable content without inventing missing information.
+
+---
+
+# Candidate Onboarding
+
+Earlier development versions required manually entering a MongoDB Candidate ID.
+
+That workflow has been removed from the public v1.0.0 extension.
+
+Current onboarding is:
+
+```text
+Install extension
+      ↓
+Open popup
+      ↓
+Choose PDF/DOCX resume
+      ↓
+Process Resume
+      ↓
+Backend parses resume
+      ↓
+Gemini creates candidate profile
+      ↓
+MongoDB persists profile
+      ↓
+candidateId returned internally
+      ↓
+candidateId stored automatically
+      ↓
+Candidate Profile shown
+```
+
+The MongoDB ID remains an implementation detail.
 
 ---
 
 # Candidate Profile
 
-A structured candidate contains information such as:
+A structured candidate may contain:
 
 ```json
 {
@@ -864,15 +1332,6 @@ A structured candidate contains information such as:
   "lastName": "Chavan",
   "email": "candidate@example.com",
   "phone": "+91XXXXXXXXXX",
-  "location": {
-    "city": "Bengaluru",
-    "country": "India"
-  },
-  "links": {
-    "linkedin": "",
-    "github": "",
-    "portfolio": ""
-  },
   "summary": "...",
   "skills": [],
   "experience": [],
@@ -881,9 +1340,18 @@ A structured candidate contains information such as:
 }
 ```
 
+Depending on resume content, candidate information can also include:
+
+- location
+- LinkedIn
+- GitHub
+- portfolio
+- experience-specific skills
+- resume metadata
+
 Gemini is instructed not to invent missing information.
 
-For example, if raw resume extraction contains:
+If extracted content includes labels such as:
 
 ```text
 LinkedIn
@@ -891,21 +1359,22 @@ GitHub
 Portfolio
 ```
 
-but does not expose the actual URLs, the model should not invent those URLs.
+but does not expose the actual URL, the model should not fabricate the missing URL.
 
 ---
 
 # Chrome Extension Architecture
 
-The extension follows Manifest V3.
+The extension follows Chrome Manifest V3.
 
-Important components:
+Core components:
 
 ```text
-Popup
+React Popup
 Background Service Worker
 Content Script
 Chrome Storage
+Chrome Tabs
 Runtime Messaging
 ```
 
@@ -913,14 +1382,17 @@ Runtime Messaging
 
 ## Popup
 
-The React popup acts as the control panel.
+The React popup is the user-facing control panel.
 
-It exposes actions such as:
+Current user experience includes:
 
 ```text
 Backend status
 Workday detection
-Candidate ID
+
+Candidate Profile
+Resume upload / Replace Resume
+
 Refresh status
 Scan Workday page
 Map fields to candidate
@@ -931,7 +1403,11 @@ Detect navigation
 Detect Questions
 Validate Current Step
 Scan Final Review
+
+Privacy & Data Use
 ```
+
+The old manual Candidate ID input is no longer part of the public onboarding flow.
 
 ---
 
@@ -939,47 +1415,50 @@ Scan Final Review
 
 The background worker coordinates:
 
-- backend requests
-- active-tab lookup
-- candidate state
+- backend communication
+- active tab lookup
+- candidate reference state
 - field mapping
 - scanning
 - autofill
 - navigation
+- validation
 - review
 - submission confirmation
 
-Because Manifest V3 service workers may be suspended, persistent state is stored in:
+Manifest V3 workers can be suspended by Chrome.
+
+Persistent state therefore uses:
 
 ```text
 chrome.storage.local
 ```
 
-rather than relying only on global JavaScript memory.
+rather than depending exclusively on in-memory JavaScript state.
 
 ---
 
 ## Content Script
 
-The content script runs inside matching Workday pages.
+The content script operates inside supported Workday pages.
 
 Responsibilities include:
 
 - DOM scanning
-- identifying fields
+- field discovery
 - filling controls
-- detecting dynamic sections
-- observing page changes
+- detecting repeatable sections
+- observing page mutations
 - detecting navigation
 - validating fields
 - final review scanning
-- controlled submission
+- guarded submission interaction
 
 ---
 
 # Workday DOM Automation
 
-The scanner attempts to understand a field using more than just selectors.
+The scanner attempts to understand fields using more than CSS selectors.
 
 Metadata may include:
 
@@ -997,7 +1476,7 @@ required state
 existing value
 ```
 
-This makes the system more robust than a hardcoded CSS-selector-only approach.
+This makes the system more resilient than hardcoded selector-only automation.
 
 ---
 
@@ -1007,13 +1486,13 @@ Example:
 
 ```text
 Workday:
-"Legal First Name"
+Legal First Name
 
 Candidate:
-firstName = "Akshay"
+firstName = Akshay
 ```
 
-Mapped result:
+Possible mapping:
 
 ```json
 {
@@ -1027,21 +1506,23 @@ Another example:
 
 ```text
 Workday:
-"Professional Profile URL"
+Professional Profile URL
 
 Candidate:
-?
+LinkedIn?
+GitHub?
+Portfolio?
 ```
 
-If the system cannot determine whether this means LinkedIn, portfolio, GitHub, or another profile confidently, it should lower confidence instead of blindly filling a value.
+If the meaning cannot be determined confidently, the mapper should lower confidence rather than blindly choosing a value.
 
 ---
 
 # Safe Autofill
 
-Safety is a core design requirement.
+Safety is a primary design goal.
 
-The system considers:
+The autofill engine considers:
 
 ```text
 shouldFill
@@ -1049,19 +1530,20 @@ confidence
 existing value
 field type
 candidate value
+sensitive status
 ```
 
 High-confidence fields may be filled.
 
-Low-confidence fields should remain for review.
+Low-confidence fields remain for review.
 
-The extension also attempts to avoid overwriting useful prefilled values.
+The extension also attempts to avoid replacing useful existing form values.
 
 ---
 
 # Dynamic and Repeatable Sections
 
-Workday often allows multiple:
+Workday often supports multiple:
 
 ```text
 Experience
@@ -1070,40 +1552,37 @@ Education
 
 entries.
 
-The system includes repeatable-section support.
-
 Example:
 
 ```text
 Candidate experiences = 3
-Current Workday experience entries = 1
+Existing Workday entries = 1
 ```
 
-The extension can reason about adding the missing entries.
+The extension can detect the section and reason about additional entries.
 
 ---
 
 ## MutationObserver
 
-Dynamic Workday rendering is handled using browser observation mechanisms such as:
+Dynamic Workday rendering is observed using browser mechanisms including:
 
 ```text
 MutationObserver
 ```
 
-This helps detect:
+This helps identify:
 
-- newly rendered fields
-- added repeatable items
+- newly rendered controls
+- added repeatable sections
 - asynchronous page changes
+- dynamically inserted fields
 
 ---
 
 # Multi-Step Navigation
 
-The navigator understands that Workday applications are not single-page forms.
-
-Possible states include:
+Workday applications can contain states such as:
 
 ```text
 My Information
@@ -1114,9 +1593,9 @@ Voluntary Disclosures
 Review
 ```
 
-Navigation actions are separate from autofill.
+Navigation is intentionally separated from autofill.
 
-The extension can detect:
+The extension can detect controls such as:
 
 ```text
 Continue
@@ -1131,19 +1610,19 @@ before deciding what action is appropriate.
 
 # Questions and EEO Handling
 
-Questions are treated differently from ordinary contact fields.
+Questions are handled separately from ordinary contact fields.
 
-Examples:
+Examples include:
 
 ```text
 Do you require sponsorship?
 Are you legally authorized to work?
-Have you worked here before?
+Have you previously worked for this company?
 ```
 
-The system may classify deterministic questions when reliable information exists.
+The extension can classify questions where reliable candidate information exists.
 
-However, sensitive voluntary information is not inferred.
+However, sensitive or voluntary demographic information is not inferred.
 
 Examples:
 
@@ -1156,13 +1635,13 @@ Veteran status
 Other EEO disclosures
 ```
 
-Unknown sensitive information should remain unanswered.
+Unknown sensitive fields should remain unanswered.
 
 ---
 
 # Validation and Error Recovery
 
-Before navigating to the next Workday step, the extension can scan for validation issues.
+Before navigating forward, the extension can scan for validation problems.
 
 Examples:
 
@@ -1173,7 +1652,7 @@ Unsupported value
 Failed field update
 ```
 
-The automation can then stop instead of continuing with a broken form.
+The automation can stop instead of proceeding with an invalid form.
 
 ---
 
@@ -1181,25 +1660,26 @@ The automation can then stop instead of continuing with a broken form.
 
 Submission receives the strongest safety protection.
 
-The extension must never bypass:
+The extension must not bypass:
 
 - authentication
 - CAPTCHA
 - MFA
+- security challenges
 - user review
 
-The candidate manually handles authentication/security challenges.
+The user manually handles authentication/security challenges.
 
-Before submission:
+Final workflow:
 
 ```text
 Scan Final Review
         ↓
-Review fields
+Review application
         ↓
 Explicit confirmation
         ↓
-Submit
+Submission action
 ```
 
 The submission handler requires:
@@ -1208,14 +1688,14 @@ The submission handler requires:
 explicitlyConfirmed === true
 ```
 
-Without that condition, submission must be rejected.
+Without explicit confirmation, submission must not proceed.
 
 ---
 
 # Repository Structure
 
 ```text
-AI-powered Chrome extension/
+AI-powered-Chrome-extension/
 │
 ├── apps/
 │   │
@@ -1240,6 +1720,7 @@ AI-powered Chrome extension/
 │   │
 │   └── extension/
 │       ├── public/
+│       │   ├── icons/
 │       │   └── manifest.json
 │       │
 │       ├── src/
@@ -1264,14 +1745,10 @@ AI-powered Chrome extension/
 │   └── limitations.md
 │
 ├── packages/
-│   ├── shared-types/
-│   └── shared-schemas/
 │
 ├── tests/
-│   ├── e2e/
-│   ├── fixtures/
-│   └── integration/
 │
+├── PRIVACY_POLICY.md
 ├── package.json
 ├── package-lock.json
 ├── .gitignore
@@ -1295,14 +1772,6 @@ MongoDB Atlas account
 Google Gemini API key
 ```
 
-Development environment used during this project:
-
-```text
-Node.js v22.20.0
-npm 10.9.3
-Git 2.51.0.windows.2
-```
-
 ---
 
 ## Clone Repository
@@ -1321,13 +1790,11 @@ cd "AI-powered-Chrome-extension"
 
 ## Install Dependencies
 
-From the repository root:
-
 ```bash
 npm install
 ```
 
-The repository uses npm workspaces.
+The project uses npm workspaces.
 
 ---
 
@@ -1339,7 +1806,7 @@ Create:
 apps/api/.env
 ```
 
-Use:
+Example:
 
 ```env
 NODE_ENV=development
@@ -1367,13 +1834,13 @@ Use:
 apps/api/.env.example
 ```
 
-as a reference only.
+as a configuration reference.
 
 ---
 
 # Running the Backend
 
-From repository root:
+From the repository root:
 
 ```bash
 npm run dev:api
@@ -1388,15 +1855,13 @@ API running at http://localhost:4000
 
 ---
 
-## Local health check
-
-Open:
+## Local Health Check
 
 ```text
 http://localhost:4000/api/health
 ```
 
-Expected:
+Expected response:
 
 ```json
 {
@@ -1417,13 +1882,13 @@ Run:
 npm run build:extension
 ```
 
-Production build is generated in:
+The production extension is generated in:
 
 ```text
 apps/extension/dist
 ```
 
-Important files include:
+Important output files include:
 
 ```text
 manifest.json
@@ -1431,6 +1896,7 @@ index.html
 background.js
 content.js
 assets/
+icons/
 ```
 
 ---
@@ -1455,7 +1921,7 @@ Click:
 Load unpacked
 ```
 
-Select:
+For a source-code build, select:
 
 ```text
 apps/extension/dist
@@ -1471,15 +1937,15 @@ or the repository root.
 
 ---
 
-## After rebuilding
+## After Rebuilding
 
-When running:
+When you run:
 
 ```bash
 npm run build:extension
 ```
 
-Chrome does not automatically reload the unpacked extension.
+Chrome does not automatically replace the running unpacked extension.
 
 Return to:
 
@@ -1515,7 +1981,7 @@ GET /api/health
 
 ---
 
-## Resume extraction
+## Raw Resume Extraction
 
 ```http
 POST /api/resumes/extract
@@ -1536,10 +2002,16 @@ DOCX
 
 ---
 
-## AI Resume Parsing
+## AI Resume Parsing + Candidate Creation
 
 ```http
 POST /api/ai/resumes/parse
+```
+
+Multipart field:
+
+```text
+resume
 ```
 
 Flow:
@@ -1556,6 +2028,8 @@ Validate
 Normalize
  ↓
 Persist
+ ↓
+Return candidateId + profile
 ```
 
 ---
@@ -1576,11 +2050,23 @@ GET /api/candidates/:candidateId
 
 ---
 
+## AI Field Mapping
+
+The backend also exposes AI field-mapping functionality under:
+
+```text
+/api/ai/fields
+```
+
+The extension uses deterministic heuristics first and AI when semantic interpretation is necessary.
+
+---
+
 # Production Deployment
 
 ## Backend
 
-The backend is deployed using Vercel.
+The backend is deployed on Vercel.
 
 Production:
 
@@ -1588,32 +2074,24 @@ Production:
 
 ---
 
-## Vercel Root Directory
+## Database
 
-Because this repository is a monorepo:
-
-```text
-apps/api
-```
-
-is configured as the backend project's root directory.
+MongoDB Atlas stores structured candidate profiles.
 
 ---
 
-## Production Environment Variables
+## Vercel Environment Variables
 
-Configured in Vercel:
+Production secrets are configured through Vercel environment variables.
+
+Examples:
 
 ```text
-NODE_ENV=production
-
-MONGODB_URI=<secret>
-
-GEMINI_API_KEY=<secret>
-
-GEMINI_MODEL=gemini-2.5-flash
-
-CLIENT_ORIGIN=<configured origin>
+NODE_ENV
+MONGODB_URI
+GEMINI_API_KEY
+GEMINI_MODEL
+CLIENT_ORIGIN
 ```
 
 Secrets must never be committed to Git.
@@ -1622,15 +2100,15 @@ Secrets must never be committed to Git.
 
 ## Express + Vercel
 
-The Express application is default-exported from:
+The Express application is exported from:
 
 ```text
 apps/api/src/app.ts
 ```
 
-This allows Vercel to invoke the Express application as a serverless function.
+for Vercel's serverless execution path.
 
-Local execution still uses:
+Local execution uses:
 
 ```text
 apps/api/src/server.ts
@@ -1640,49 +2118,43 @@ apps/api/src/server.ts
 
 ## MongoDB in Serverless Runtime
 
-Vercel does not execute the local server startup flow in the same way as:
+Vercel serverless execution does not behave exactly like the long-running local development server.
 
-```bash
-npm run dev:api
-```
+MongoDB connectivity is therefore established appropriately for the production request path.
 
-Therefore database connectivity is established in the Vercel request path.
-
-Connection reuse prevents unnecessary duplicate MongoDB connections.
+Connection reuse helps avoid unnecessary duplicate database connections.
 
 ---
 
-## MongoDB Atlas Network Access
+## PDF Parsing in Vercel
 
-The production Vercel runtime requires Atlas network access.
+The PDF parser is loaded dynamically only when a PDF request is processed.
 
-For the assessment/demo environment, Atlas may contain:
+Current implementation:
 
 ```text
-0.0.0.0/0
+PDF request
+    ↓
+lazy import pdf-parse worker
+    ↓
+lazy import PDFParse
+    ↓
+extract text
+    ↓
+destroy parser
 ```
 
-to allow serverless Vercel infrastructure to reach MongoDB.
-
-This configuration should always be combined with:
-
-- strong database credentials,
-- secrets stored only in environment variables,
-- least-privilege database users where possible.
-
-For a real production environment, more restrictive networking is preferred when infrastructure permits it.
+This prevents PDF-specific runtime dependencies from being loaded unnecessarily for DOCX and unrelated API requests.
 
 ---
 
 # Testing
 
-The project uses multiple testing layers.
+The project uses multiple testing and validation layers.
 
 ---
 
-## TypeScript Build
-
-Backend:
+## Backend Build
 
 ```bash
 npm run build:api
@@ -1706,7 +2178,7 @@ npm run build:extension
 
 ---
 
-## Git whitespace validation
+## Git Whitespace Validation
 
 ```bash
 git diff --check
@@ -1716,100 +2188,122 @@ git diff --check
 
 ## Resume Parsing Tests
 
-Validated with real:
+Real PDF and DOCX resumes have been tested.
+
+Validated flow:
 
 ```text
-PDF resume
-DOCX resume
+File upload
+   ↓
+Text extraction
+   ↓
+Gemini
+   ↓
+Candidate profile
+   ↓
+MongoDB
 ```
-
-Both formats successfully produced extracted resume text.
 
 ---
 
-## Gemini Tests
+## Local PDF Test
 
-Both PDF and DOCX resumes were successfully converted into structured candidate profiles.
+Example:
 
-Validated information included:
+```bash
+curl.exe -X POST \
+  -F "resume=@resume.pdf" \
+  http://localhost:4000/api/ai/resumes/parse
+```
+
+---
+
+## Local DOCX Test
+
+Example:
+
+```bash
+curl.exe -X POST \
+  -F "resume=@resume.docx" \
+  http://localhost:4000/api/ai/resumes/parse
+```
+
+---
+
+## Production Backend Verification
+
+Validated production behavior includes:
+
+```text
+Backend connected
+MongoDB connected
+Resume processing available through extension
+Candidate profile returned
+```
+
+---
+
+## Candidate Onboarding Test
+
+Verified extension workflow:
+
+```text
+Choose Resume
+      ↓
+Process Resume
+      ↓
+✓ Resume ready
+      ↓
+Candidate Profile displayed
+```
+
+Candidate information can include:
 
 ```text
 Name
+Title
 Email
-Phone
-Summary
 Skills
-Experience
-Education
-Certifications
+Resume filename
 ```
 
 ---
 
-## MongoDB Tests
+## Extension Build Verification
 
-Verified:
+Production output includes:
 
 ```text
-POST candidate
-GET candidate
-Invalid candidate ID
+manifest.json
+background.js
+content.js
+index.html
+assets/
+icons/
 ```
 
 ---
 
-## Production API Test
+## Safety Expectations
 
-Verified:
-
-```text
-GET /api/health
-```
-
-against Vercel.
-
-Expected:
-
-```text
-database = connected
-```
-
----
-
-## Chrome Extension Test
-
-Verified:
-
-```text
-Backend → Connected
-```
-
-against the production Vercel API.
-
----
-
-## Safety / Regression Testing
-
-Phase 14 introduced additional safety and regression coverage around Workday behavior.
-
-Important safety expectations include:
+Regression and manual safety checks cover:
 
 - do not bypass login
 - do not bypass CAPTCHA
 - do not bypass MFA
 - do not infer sensitive EEO values
-- do not overwrite safe prefilled fields unnecessarily
+- do not aggressively overwrite valid fields
 - do not submit without explicit confirmation
 
 ---
 
-# Security
+# Security and Privacy
 
-## Gemini Key
+## Gemini API Key
 
 The Gemini API key exists only in backend environment variables.
 
-It must never be embedded inside:
+It must never be embedded in:
 
 ```text
 Chrome extension
@@ -1821,35 +2315,67 @@ Git repository
 
 ## MongoDB Credentials
 
-MongoDB credentials are stored through:
+MongoDB credentials are provided through:
 
 ```text
 MONGODB_URI
 ```
 
-inside environment configuration.
+and stored only in server-side environment configuration.
 
 ---
 
 ## Chrome Storage
 
-Extension state is stored using:
+The extension uses:
 
 ```text
 chrome.storage.local
 ```
 
-This is used for extension state and candidate references.
+for extension state and internal candidate references.
 
-Sensitive backend secrets are not stored there.
+Backend secrets are not stored in Chrome storage.
+
+---
+
+## Resume Data
+
+Resume information may be processed by the backend to:
+
+- extract candidate information
+- generate a structured profile
+- support Workday field mapping
+- support autofill
+
+See:
+
+[PRIVACY_POLICY.md](./PRIVACY_POLICY.md)
+
+for the project's privacy disclosure.
+
+---
+
+## Workday Data
+
+Workday form information may be processed when needed for:
+
+- field understanding
+- semantic mapping
+- validation
+- resume-aware autofill
+
+---
+
+## Sensitive Information
+
+Unknown sensitive information is not automatically inferred.
 
 ---
 
 ## Authentication
 
-The extension does not bypass authentication.
-
-The user manually handles:
+The extension does not bypass:
 
 ```text
 Workday sign-in
@@ -1859,27 +2385,48 @@ MFA
 Security challenges
 ```
 
+These remain under user control.
+
+---
+
+## Public API Considerations
+
+The current GitHub/demo deployment is intended for:
+
+```text
+Assessment
+Demonstration
+Portfolio
+Development
+```
+
+A broader public production rollout would benefit from additional hardening such as:
+
+- user authentication
+- per-user candidate ownership
+- rate limiting
+- API abuse protection
+- stricter data-retention policies
+- tighter database network restrictions
+- candidate deletion controls
+
 ---
 
 # Phase-by-Phase Development History
 
-This project was intentionally developed in small, testable phases.
-
-Each major phase has its own Git commit.
+This project was developed incrementally.
 
 ---
 
 ## Phase 1 — Project Foundation
 
-Created the initial monorepo foundation.
-
-Included:
+Created:
 
 - npm workspaces
 - React/Vite extension
 - Node/Express API skeleton
 - shared packages
-- docs
+- documentation structure
 - testing directories
 - root scripts
 - `.gitignore`
@@ -1899,9 +2446,8 @@ Added:
 - environment validation
 - MongoDB connectivity
 - health endpoint
-- global error handling
-- 404 handling
-- clean startup/shutdown flow
+- error handling
+- startup/shutdown flow
 
 Commit:
 
@@ -1916,12 +2462,12 @@ Implemented:
 - PDF parsing
 - DOCX parsing
 - upload validation
-- candidate TypeScript types
-- Zod candidate schema
+- candidate types
+- Zod validation
 - Mongoose candidate model
-- candidate persistence
-- candidate retrieval
-- invalid ObjectId handling
+- persistence
+- retrieval
+- invalid ID handling
 
 Commit:
 
@@ -1933,14 +2479,13 @@ Commit:
 
 Implemented:
 
-- Google Gemini client
+- Gemini client
 - resume parsing prompt
 - structured AI output
-- Gemini candidate schema
 - candidate normalization
-- Gemini → Zod validation
+- schema validation
 - AI resume endpoint
-- MongoDB persistence of AI-generated candidate profile
+- candidate persistence
 
 Commit:
 
@@ -1953,14 +2498,14 @@ Commit:
 Implemented:
 
 - Manifest V3
-- popup interface
+- popup
 - service worker
 - content script
 - Chrome storage
 - runtime messaging
-- backend health status
-- Workday host permissions
-- Workday page detection
+- backend status
+- Workday permissions
+- Workday detection
 
 Commit:
 
@@ -1970,7 +2515,7 @@ Commit:
 
 ## Phase 6 — Workday DOM Scanner
 
-Implemented Workday page scanning and normalized representation of application form controls.
+Implemented normalized Workday form scanning.
 
 Commit:
 
@@ -1980,7 +2525,7 @@ Commit:
 
 ## Phase 7 — Semantic Field Mapping
 
-Implemented semantic mapping between Workday fields and structured candidate data.
+Implemented semantic mapping between Workday fields and candidate information.
 
 Commit:
 
@@ -1990,14 +2535,13 @@ Commit:
 
 ## Phase 8 — Safe Workday Autofill
 
-Implemented confidence-aware Workday field filling.
+Implemented:
 
-Key goals:
-
-- avoid unsafe guesses
-- avoid overwriting valid values
-- dispatch appropriate DOM events
-- fill only sufficiently confident mappings
+- confidence-aware filling
+- safe value selection
+- prefilled-value protection
+- DOM event dispatch
+- high-confidence-only automation
 
 Commit:
 
@@ -2007,7 +2551,11 @@ Commit:
 
 ## Phase 9 — Dynamic and Repeatable Workday Sections
 
-Added support for dynamically rendered Workday sections and repeated Experience/Education structures.
+Added support for:
+
+- dynamic Workday rendering
+- repeatable Experience structures
+- repeatable Education structures
 
 Commit:
 
@@ -2017,7 +2565,11 @@ Commit:
 
 ## Phase 10 — Multi-Step Workday Navigator
 
-Added page-state detection and navigation controls for multi-step Workday applications.
+Added:
+
+- page-state detection
+- navigation controls
+- multi-step workflow awareness
 
 Commit:
 
@@ -2025,9 +2577,9 @@ Commit:
 
 ---
 
-## Phase 11 — Workday Question Detection and Classification
+## Phase 11 — Workday Question Detection
 
-Added detection/classification for application questions, including conservative handling of sensitive and uncertain information.
+Added application-question detection and conservative sensitive-data handling.
 
 Commit:
 
@@ -2037,7 +2589,11 @@ Commit:
 
 ## Phase 12 — Validation and Error Recovery
 
-Added Workday validation scanning and safer recovery behavior before navigation.
+Added:
+
+- validation scanning
+- error awareness
+- safer navigation behavior
 
 Commit:
 
@@ -2047,7 +2603,11 @@ Commit:
 
 ## Phase 13 — Final Review and Explicit Submission
 
-Added final review scanning and explicit confirmation protection before Workday submission.
+Added:
+
+- final review scanning
+- explicit submission confirmation
+- submission guard
 
 Commit:
 
@@ -2057,7 +2617,7 @@ Commit:
 
 ## Phase 14 — Testing and Safety Hardening
 
-Added regression tests and safety protections around the Workday automation flow.
+Added regression and safety coverage.
 
 Commit:
 
@@ -2065,15 +2625,24 @@ Commit:
 
 ---
 
-# Deployment Fixes
+## Phase 15 — Documentation and Release Preparation
 
-After Phase 14, the backend was prepared for Vercel production deployment.
+Added:
+
+- complete documentation
+- architecture documentation
+- AI strategy
+- testing documentation
+- limitations
+- privacy/release preparation
 
 ---
 
+# Deployment Fixes
+
 ## Express Vercel Export
 
-Vercel requires a compatible Express export.
+Added the Express-compatible Vercel export.
 
 Commit:
 
@@ -2083,7 +2652,7 @@ Commit:
 
 ## MongoDB Connection in Vercel Runtime
 
-Added MongoDB connectivity for the serverless Vercel execution path.
+Added MongoDB connectivity for serverless execution.
 
 Commit:
 
@@ -2091,21 +2660,64 @@ Commit:
 
 ---
 
-## Phase 15 — Documentation, Packaging and Submission
+# Public Onboarding and v1.0.0 Hardening
 
-Phase 15 focuses on:
+After the initial documentation phase, the extension onboarding flow was improved for public/demo usage.
 
-- complete README
-- architecture documentation
-- AI strategy documentation
-- testing documentation
-- limitations documentation
-- production deployment documentation
-- demo flow
-- extension packaging
-- final submission checklist
+---
 
-This is the final planned development phase.
+## Resume Onboarding
+
+The manual Candidate ID workflow was replaced by:
+
+```text
+Choose Resume
+→ Process Resume
+→ Candidate profile created
+→ Candidate reference stored automatically
+→ Resume Ready UI
+```
+
+Commit:
+
+[`7ae018c` — feat: add resume onboarding and fix PDF parsing](https://github.com/akshaychavan23031998/AI-powered-Chrome-extension/commit/7ae018c8aff90604408344f1e3dd2707f4b0ed42)
+
+---
+
+## Vercel PDF Runtime Compatibility
+
+The PDF parser was changed to lazy loading for serverless compatibility.
+
+Commit:
+
+[`e28f8ca` — fix: lazy load PDF parser for Vercel runtime](https://github.com/akshaychavan23031998/AI-powered-Chrome-extension/commit/e28f8cab069beab0e379a4498e9c2cccb59c01fa)
+
+---
+
+# GitHub Release v1.0.0
+
+The first packaged release is:
+
+```text
+Workday AI Application Assistant v1.0.0
+```
+
+Release:
+
+[https://github.com/akshaychavan23031998/AI-powered-Chrome-extension/releases/tag/v1.0.0](https://github.com/akshaychavan23031998/AI-powered-Chrome-extension/releases/tag/v1.0.0)
+
+Asset:
+
+```text
+workday-ai-assistant-v1.0.0.zip
+```
+
+The release is distributed through GitHub for:
+
+- assessment
+- demonstration
+- development
+- portfolio use
 
 ---
 
@@ -2113,39 +2725,39 @@ This is the final planned development phase.
 
 ## Workday DOM Changes
 
-Workday can change its DOM structure.
+Workday can change its DOM implementation.
 
-Selectors and semantic scanning therefore require continued maintenance.
+The scanner and automation logic may require maintenance as Workday evolves.
 
 ---
 
 ## Company-Specific Workday Configuration
 
-Different employers may configure Workday differently.
+Employers may configure Workday differently.
 
-The extension is designed to be adaptable, but full compatibility cannot be guaranteed across every tenant without testing.
+Full compatibility cannot be guaranteed across every Workday tenant without testing.
 
 ---
 
 ## Resume Formatting
 
-Highly visual resumes may produce extraction artifacts.
+Highly visual resumes may create extraction artifacts.
 
-Examples:
+Examples include:
 
 ```text
-A KSHAY
-R AM
-C HAVAN
+unexpected icon characters
+broken line ordering
+decorative symbol extraction
 ```
 
-AI normalization can repair obvious formatting problems, but accuracy depends on extraction quality.
+AI normalization can recover some obvious issues, but extraction quality still matters.
 
 ---
 
 ## Hidden Hyperlinks
 
-PDF/DOCX text extraction may return:
+Resume extraction may return:
 
 ```text
 LinkedIn
@@ -2153,15 +2765,23 @@ GitHub
 Portfolio
 ```
 
-without the underlying URL.
+without exposing the underlying hyperlinks.
 
-The AI intentionally avoids inventing URLs when the URL itself cannot be extracted.
+Missing URLs are intentionally not invented.
+
+---
+
+## PDF Text Extraction
+
+Image-only or scanned PDFs may not contain directly extractable text.
+
+OCR is not currently part of the v1.0.0 parsing pipeline.
 
 ---
 
 ## CAPTCHA and MFA
 
-The system does not automate or bypass:
+The extension does not automate or bypass:
 
 ```text
 CAPTCHA
@@ -2173,9 +2793,32 @@ Authentication challenges
 
 ## Sensitive Questions
 
-The extension does not infer unknown sensitive demographic information.
+Unknown sensitive demographic information is not inferred.
 
-These fields require manual candidate input.
+Manual user input is required.
+
+---
+
+## Candidate Replacement
+
+In v1.0.0, replacing a resume creates a new candidate profile and switches the local candidate reference.
+
+Automatic cleanup/deletion of superseded database candidate records is not yet implemented.
+
+---
+
+## Public API Security
+
+The current backend is appropriate for assessment/demo use.
+
+A broad public product rollout would require stronger:
+
+- authentication
+- authorization
+- candidate ownership controls
+- rate limiting
+- abuse protection
+- retention policies
 
 ---
 
@@ -2183,38 +2826,42 @@ These fields require manual candidate input.
 
 Submission intentionally requires explicit confirmation.
 
-This is a safety feature, not a limitation to be removed casually.
+This is a safety requirement.
 
 ---
 
 # Future Improvements
 
-Potential future improvements include:
+Potential improvements include:
 
 - stronger Shadow DOM traversal
-- configurable field confidence thresholds
-- candidate profile editor
-- extension-side resume upload
+- configurable confidence thresholds
+- candidate profile editing
 - multiple saved candidate profiles
-- encrypted local candidate cache
+- candidate profile deletion
+- automatic cleanup of replaced profiles
+- encrypted local cache
+- user authentication
+- per-user candidate ownership
+- rate limiting
+- API abuse protection
 - application history
 - application status tracking
-- richer question-answer generation
+- richer question-answer assistance
 - per-company Workday adapters
-- improved date normalization
-- phone-number normalization
-- stronger URL extraction
-- extension onboarding flow
-- automatic deployment environment selection
+- better date normalization
+- better phone normalization
+- stronger hyperlink extraction
+- scanned-PDF/OCR support
 - telemetry with explicit opt-in
-- Chrome Web Store packaging
+- Chrome Web Store publication
 - additional E2E Workday tenant coverage
 
 ---
 
 # Demo Flow
 
-A recommended demo recording sequence:
+Recommended recording sequence:
 
 ## 1. Project Introduction
 
@@ -2229,11 +2876,36 @@ Safety philosophy
 
 ---
 
-## 2. Show Backend
+## 2. GitHub Release
+
+Show:
+
+```text
+v1.0.0
+workday-ai-assistant-v1.0.0.zip
+```
+
+---
+
+## 3. Install Extension
+
+Show:
+
+```text
+Download ZIP
+Extract
+chrome://extensions
+Developer mode
+Load unpacked
+```
+
+---
+
+## 4. Show Backend
 
 Open:
 
-[Production health endpoint](https://ai-powered-chrome-extension-api.vercel.app/api/health)
+[Production Health Endpoint](https://ai-powered-chrome-extension-api.vercel.app/api/health)
 
 Show:
 
@@ -2244,57 +2916,48 @@ database: connected
 
 ---
 
-## 3. Resume Parsing
+## 5. Resume Onboarding
 
-Upload PDF/DOCX through the resume AI endpoint.
-
-Explain:
-
-```text
-Resume
- ↓
-Parser
- ↓
-Gemini
- ↓
-Zod
- ↓
-MongoDB
-```
-
----
-
-## 4. Show Candidate JSON
-
-Demonstrate:
-
-```text
-name
-email
-phone
-skills
-experience
-education
-```
-
----
-
-## 5. Show Chrome Extension
-
-Open the popup.
+Open the extension.
 
 Show:
 
 ```text
-Backend → Connected
-Candidate ID
+Choose Resume
+→ PDF
+→ Process Resume
 ```
 
 ---
 
-## 6. Open Workday
+## 6. Candidate Profile
 
-Open the selected Workday application.
+Show:
+
+```text
+✓ Resume ready
+Candidate name
+Job title
+Email
+Skills
+Resume filename
+```
+
+Explain that the candidate ID is handled internally.
+
+---
+
+## 7. Reopen Popup
+
+Close and reopen the extension popup.
+
+Demonstrate candidate-profile persistence.
+
+---
+
+## 8. Open Workday
+
+Open the selected supported Workday application.
 
 Show:
 
@@ -2304,7 +2967,7 @@ Workday page → Detected
 
 ---
 
-## 7. Scan Page
+## 9. Scan Page
 
 Click:
 
@@ -2316,7 +2979,7 @@ Explain DOM scanning.
 
 ---
 
-## 8. Map Fields
+## 10. Map Fields
 
 Click:
 
@@ -2324,11 +2987,18 @@ Click:
 Map fields to candidate
 ```
 
-Explain semantic mapping and confidence.
+Explain:
+
+```text
+heuristics
+semantic mapping
+confidence
+AI fallback
+```
 
 ---
 
-## 9. Autofill
+## 11. Safe Autofill
 
 Click:
 
@@ -2336,25 +3006,34 @@ Click:
 Autofill safe fields
 ```
 
-Explain why only high-confidence fields are filled.
+Explain why only high-confidence values are filled.
 
 ---
 
-## 10. Experience and Education
+## 12. Experience and Education
 
-Demonstrate repeatable section handling.
+Demonstrate:
 
----
-
-## 11. Questions
-
-Demonstrate question detection.
-
-Explain that uncertain/sensitive questions require user review.
+```text
+Detect dynamic sections
+Autofill Experience & Education
+```
 
 ---
 
-## 12. Validation
+## 13. Questions
+
+Demonstrate:
+
+```text
+Detect Questions
+```
+
+Explain sensitive/manual handling.
+
+---
+
+## 14. Validation
 
 Run:
 
@@ -2362,17 +3041,17 @@ Run:
 Validate Current Step
 ```
 
-Show validation/error recovery.
+Show validation and error recovery.
 
 ---
 
-## 13. Navigation
+## 15. Navigation
 
-Demonstrate multi-step Workday navigation.
+Demonstrate multi-step navigation detection.
 
 ---
 
-## 14. Final Review
+## 16. Final Review
 
 Run:
 
@@ -2382,51 +3061,73 @@ Scan Final Review
 
 ---
 
-## 15. Submission Safety
+## 17. Submission Safety
 
-Explain:
+Explain clearly:
 
 ```text
 No silent submission.
 Explicit user confirmation is mandatory.
+Authentication/CAPTCHA/MFA are never bypassed.
 ```
-
-This should be highlighted in the demo.
 
 ---
 
 # Final Submission Checklist
 
-Before final submission verify:
+## Repository and Release
 
-- [ ] GitHub repository is public/access-approved
-- [ ] README is complete
-- [ ] `.env` is not committed
-- [ ] MongoDB credentials are not committed
-- [ ] Gemini API key is not committed
-- [ ] production API is healthy
-- [ ] MongoDB reports connected
-- [ ] extension build succeeds
-- [ ] backend build succeeds
-- [ ] TypeScript typecheck succeeds
-- [ ] tests succeed
-- [ ] unpacked extension loads without Manifest errors
-- [ ] extension shows Backend Connected
-- [ ] Workday detection works
-- [ ] DOM scanning works
-- [ ] semantic mapping works
-- [ ] safe autofill works
-- [ ] repeatable Experience/Education flow tested
-- [ ] navigation tested
-- [ ] application questions tested
-- [ ] validation tested
-- [ ] final review tested
-- [ ] explicit submission confirmation tested
-- [ ] target Workday company documented
-- [ ] demo video recorded
-- [ ] final extension build packaged
-- [ ] final ZIP/source package prepared
-- [ ] final repository pushed
+- [x] GitHub repository public
+- [x] Production backend deployed
+- [x] GitHub Release v1.0.0 created
+- [x] Extension ZIP attached to release
+- [x] Privacy policy included
+- [x] PDF/DOCX onboarding implemented
+- [x] Manual Candidate ID onboarding removed
+- [x] Production extension build created
+
+---
+
+## Build Verification
+
+- [x] backend build succeeds
+- [x] backend TypeScript typecheck succeeds
+- [x] extension build succeeds
+- [x] `git diff --check` passes
+- [x] unpacked extension loads successfully
+- [x] content script exists in production build
+
+---
+
+## Resume Flow
+
+- [x] PDF upload works locally
+- [x] DOCX upload works locally
+- [x] Gemini structured parsing works
+- [x] MongoDB candidate creation works
+- [x] extension candidate profile onboarding works
+- [x] candidate profile displays without manual ID entry
+
+---
+
+## Safety
+
+- [x] Gemini key kept backend-only
+- [x] MongoDB credentials kept backend-only
+- [x] CAPTCHA bypass is not implemented
+- [x] MFA bypass is not implemented
+- [x] sensitive demographic inference is prohibited
+- [x] explicit submission confirmation implemented
+
+---
+
+## Final Demo / Assessment
+
+- [ ] primary Workday target documented
+- [ ] Workday target walkthrough recorded
+- [ ] full demo video recorded
+- [ ] demo video link added to README
+- [ ] final end-to-end Workday verification completed
 
 ---
 
@@ -2438,33 +3139,39 @@ Before final submission verify:
 npm install
 ```
 
-## Backend development
+---
+
+## Backend Development
 
 ```bash
 npm run dev:api
 ```
 
-## Backend build
+---
+
+## Backend Build
 
 ```bash
 npm run build:api
 ```
 
-## Backend typecheck
+---
+
+## Backend Typecheck
 
 ```bash
 npm --workspace apps/api run typecheck
 ```
 
-## Extension development
+---
+
+## Extension Development
 
 ```bash
 npm run dev:extension
 ```
 
-Note:
-
-The Vite development page is not the real Chrome extension runtime.
+> The Vite development page is not the actual Chrome extension environment.
 
 Chrome APIs such as:
 
@@ -2472,11 +3179,11 @@ Chrome APIs such as:
 chrome.runtime
 ```
 
-only work when the built application is loaded as a Chrome extension.
+work when the built application is loaded as an extension.
 
 ---
 
-## Extension build
+## Extension Build
 
 ```bash
 npm run build:extension
@@ -2484,7 +3191,7 @@ npm run build:extension
 
 ---
 
-## Git verification
+## Git Verification
 
 ```bash
 git diff --check
@@ -2495,9 +3202,9 @@ git status
 
 # Git Repository
 
-Repository:
-
-[https://github.com/akshaychavan23031998/AI-powered-Chrome-extension](https://github.com/akshaychavan23031998/AI-powered-Chrome-extension)
+```text
+https://github.com/akshaychavan23031998/AI-powered-Chrome-extension
+```
 
 ---
 
@@ -2513,56 +3220,68 @@ Health:
 
 ---
 
-# Engineering Principles Used
+# Engineering Principles
 
-Throughout the project, several principles guided implementation.
+## Safety Over Aggressive Automation
 
-## Safety over aggressive automation
-
-The extension should rather leave an uncertain field empty than insert incorrect candidate information.
+An uncertain field should remain empty rather than receive incorrect candidate information.
 
 ---
 
-## Deterministic before AI
+## Deterministic Before AI
 
-AI is useful for semantic interpretation, but not every field requires AI.
-
----
-
-## Validate AI output
-
-AI output always passes through deterministic application validation.
+AI is useful for semantic interpretation, but simple deterministic mappings should not require unnecessary AI calls.
 
 ---
 
-## Modular architecture
+## Validate AI Output
 
-Responsibilities are separated into:
+AI-generated structures are validated by deterministic application logic before use.
+
+---
+
+## Do Not Infer Sensitive Information
+
+Unknown sensitive candidate information remains unknown.
+
+---
+
+## Preserve Valid Existing Values
+
+The extension should avoid overwriting useful values that are already present.
+
+---
+
+## Backend Secrets Stay Backend-Only
+
+Gemini and database credentials must never be bundled inside the extension.
+
+---
+
+## Separate Responsibilities
+
+The architecture separates:
 
 ```text
-Parser
+Resume Parser
 AI Understanding
-Candidate Model
-Scanner
-Mapper
-Filler
+Candidate Persistence
+DOM Scanner
+Semantic Mapper
+Autofill Engine
+Repeatable Section Handler
+Question Classifier
 Navigator
 Validator
-Review
+Final Review
 Submission Guard
 ```
 
 ---
 
-## Backend secrets stay backend-only
+## User Remains in Control
 
-Gemini and database credentials are never exposed inside the extension bundle.
-
----
-
-## User remains in control
-
-The extension assists the user.
+The extension assists the candidate.
 
 It does not take irreversible actions silently.
 
@@ -2597,15 +3316,13 @@ Full Stack Software Engineer focused on:
 
 [https://akshay-chavan-portfolio.vercel.app/](https://akshay-chavan-portfolio.vercel.app/)
 
-Explore the portfolio for additional projects, technical experience, skills, case studies, and software engineering work.
-
 ---
 
 # Final Note
 
-This project was built incrementally from a blank monorepo into a complete AI-assisted Workday automation system.
+This project was built incrementally from a blank monorepo into an AI-assisted Workday application automation system.
 
-The major engineering journey was:
+The engineering journey:
 
 ```text
 Project Foundation
@@ -2616,7 +3333,7 @@ Resume Parsing
        ↓
 Gemini Resume Understanding
        ↓
-Chrome Extension
+Chrome Extension Foundation
        ↓
 Workday DOM Scanner
        ↓
@@ -2634,13 +3351,19 @@ Validation & Error Recovery
        ↓
 Final Review
        ↓
-Explicit Submission
+Explicit Submission Guard
        ↓
 Testing & Safety Hardening
        ↓
 Production Deployment
        ↓
-Documentation & Submission Readiness
+Public Resume Onboarding
+       ↓
+PDF Serverless Compatibility
+       ↓
+Privacy + Packaging
+       ↓
+GitHub Release v1.0.0
 ```
 
 The most important architectural principle remains:
