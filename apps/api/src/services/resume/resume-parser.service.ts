@@ -3,10 +3,8 @@ import path from "node:path";
 import mammoth from "mammoth";
 
 import {
-  PDFParse,
-} from "pdf-parse";
-
-import { ApiError } from "../../utils/api-error.js";
+  ApiError,
+} from "../../utils/api-error.js";
 
 const PDF_MIME_TYPE =
   "application/pdf";
@@ -27,18 +25,39 @@ const normalizeExtractedText = (
 const extractPdfText = async (
   buffer: Buffer,
 ): Promise<string> => {
-  const parser =
-    new PDFParse({
-      data: buffer,
-    });
-
   try {
-    const result =
-      await parser.getText();
-
-    return normalizeExtractedText(
-      result.text,
+    /*
+     * Load pdf-parse only when a PDF is actually processed.
+     *
+     * Keeping this out of the module-level imports prevents
+     * serverless runtimes from loading PDF/native dependencies
+     * for DOCX and unrelated API requests.
+     */
+    await import(
+      "pdf-parse/worker"
     );
+
+    const {
+      PDFParse,
+    } = await import(
+      "pdf-parse"
+    );
+
+    const parser =
+      new PDFParse({
+        data: buffer,
+      });
+
+    try {
+      const result =
+        await parser.getText();
+
+      return normalizeExtractedText(
+        result.text,
+      );
+    } finally {
+      await parser.destroy();
+    }
   } catch (error) {
     console.error(
       "PDF resume extraction failed:",
@@ -49,8 +68,6 @@ const extractPdfText = async (
       422,
       "Unable to extract text from the PDF resume.",
     );
-  } finally {
-    await parser.destroy();
   }
 };
 
