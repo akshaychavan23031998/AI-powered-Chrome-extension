@@ -21,6 +21,10 @@ import {
 } from "./components/PrivacyNotice";
 
 import {
+  ResumeProfile,
+} from "./components/ResumeProfile";
+
+import {
   ScanSummary,
 } from "./components/ScanSummary";
 
@@ -28,11 +32,21 @@ import {
   StatusCard,
 } from "./components/StatusCard";
 
+import {
+  getCandidateProfile,
+  uploadAndParseResume,
+} from "./lib/api";
+
+import type {
+  CandidateProfile,
+} from "./types/candidate";
+
 import type {
   WorkdayScanResult,
 } from "./types/dom-field";
 
 import type {
+  CandidateSummary,
   ExtensionState,
 } from "./types/extension-state";
 
@@ -92,6 +106,37 @@ const initialState: ExtensionState = {
   workdayDetected: false,
 };
 
+const createCandidateSummary = (
+  candidateId: string,
+  profile: CandidateProfile,
+): CandidateSummary => {
+  return {
+    candidateId,
+
+    firstName:
+      profile.firstName,
+
+    middleName:
+      profile.middleName,
+
+    lastName:
+      profile.lastName,
+
+    email:
+      profile.email,
+
+    title:
+      profile.experience?.[0]
+        ?.title,
+
+    skills:
+      profile.skills ?? [],
+
+    resumeFileName:
+      profile.resume?.fileName,
+  };
+};
+
 function App() {
   const [
     extensionState,
@@ -100,6 +145,12 @@ function App() {
     initialState,
   );
 
+  /*
+   * candidateId remains internal application state.
+   *
+   * Users no longer need to see, copy, paste,
+   * or manually manage MongoDB candidate IDs.
+   */
   const [
     candidateId,
     setCandidateId,
@@ -193,6 +244,11 @@ function App() {
   ] = useState(true);
 
   const [
+    processingResume,
+    setProcessingResume,
+  ] = useState(false);
+
+  const [
     scanning,
     setScanning,
   ] = useState(false);
@@ -259,6 +315,65 @@ function App() {
     setError,
   ] = useState<string>();
 
+  /*
+   * Loads the candidate profile associated with
+   * an internally stored candidate ID.
+   *
+   * This allows the popup to restore the friendly
+   * candidate summary whenever the popup is reopened.
+   */
+  const hydrateCandidateProfile =
+    useCallback(
+      async (
+        state: ExtensionState,
+      ): Promise<ExtensionState> => {
+        const id =
+          state.candidateId?.trim();
+
+        if (!id) {
+          return {
+            ...state,
+            candidate:
+              undefined,
+          };
+        }
+
+        if (
+          state.candidate
+            ?.candidateId === id
+        ) {
+          return state;
+        }
+
+        try {
+          const profile =
+            await getCandidateProfile(
+              id,
+            );
+
+          return {
+            ...state,
+
+            candidate:
+              createCandidateSummary(
+                id,
+                profile,
+              ),
+          };
+        } catch {
+          /*
+           * Keep the saved candidate ID even if
+           * profile hydration temporarily fails.
+           *
+           * Mapping/autofill may still recover
+           * once the backend is available.
+           */
+          return state;
+        }
+      },
+      [],
+    );
+
   const refreshState =
     useCallback(
       async (): Promise<void> => {
@@ -282,12 +397,17 @@ function App() {
             );
           }
 
+          const hydratedState =
+            await hydrateCandidateProfile(
+              response.data,
+            );
+
           setExtensionState(
-            response.data,
+            hydratedState,
           );
 
           setCandidateId(
-            response.data.candidateId ??
+            hydratedState.candidateId ??
               "",
           );
         } catch (caughtError) {
@@ -300,48 +420,143 @@ function App() {
           setLoading(false);
         }
       },
-      [],
+      [
+        hydrateCandidateProfile,
+      ],
     );
 
-  const saveCandidateId =
-    async (): Promise<void> => {
-      const normalized =
-        candidateId.trim();
-
-      if (!normalized) {
-        setError(
-          "Candidate ID is required.",
-        );
-
-        return;
-      }
-
-      const response =
-        (await chrome.runtime.sendMessage({
-          type:
-            "SET_CANDIDATE_ID",
-
-          candidateId:
-            normalized,
-        })) as MessageResponse<ExtensionState>;
-
-      if (
-        !response.success ||
-        !response.data
-      ) {
-        setError(
-          response.error ??
-            "Unable to save candidate ID.",
-        );
-
-        return;
-      }
-
-      setExtensionState(
-        response.data,
+  /*
+   * Public candidate onboarding flow:
+   *
+   * Resume
+   *   -> backend
+   *   -> PDF/DOCX extraction
+   *   -> Gemini understanding
+   *   -> MongoDB candidate creation
+   *   -> candidateId returned
+   *   -> candidateId saved internally
+   *   -> friendly candidate summary shown to user
+   */
+  const processResume =
+    async (
+      file: File,
+    ): Promise<void> => {
+      setProcessingResume(
+        true,
       );
 
-      setError(undefined);
+      setError(
+        undefined,
+      );
+
+      try {
+        const result =
+          await uploadAndParseResume(
+            file,
+          );
+
+        const normalizedId =
+          result.candidateId.trim();
+
+        if (!normalizedId) {
+          throw new Error(
+            "Backend did not return a candidate ID.",
+          );
+        }
+
+        const candidateSummary =
+          createCandidateSummary(
+            normalizedId,
+            result.profile,
+          );
+
+        /*
+         * Reuse the existing service-worker message
+         * so the MongoDB candidate ID remains stored
+         * in chrome.storage.local.
+         */
+        const response =
+          (await chrome.runtime.sendMessage({
+            type:
+              "SET_CANDIDATE_ID",
+
+            candidateId:
+              normalizedId,
+          })) as MessageResponse<ExtensionState>;
+
+        if (
+          !response.success ||
+          !response.data
+        ) {
+          throw new Error(
+            response.error ??
+              "Resume was processed, but the candidate profile could not be saved in the extension.",
+          );
+        }
+
+        const nextState:
+          ExtensionState = {
+            ...response.data,
+
+            candidateId:
+              normalizedId,
+
+            candidate:
+              candidateSummary,
+          };
+
+        setCandidateId(
+          normalizedId,
+        );
+
+        setExtensionState(
+          nextState,
+        );
+
+        /*
+         * A replacement resume represents a new
+         * candidate profile in v1.
+         *
+         * Clear old page-specific results so stale
+         * mappings from the previous resume are not
+         * shown or accidentally reused.
+         */
+        setMappingResult(
+          undefined,
+        );
+
+        setFillResult(
+          undefined,
+        );
+
+        setRepeatableFillResult(
+          undefined,
+        );
+
+        setReviewResult(
+          undefined,
+        );
+
+        setSubmitResult(
+          undefined,
+        );
+
+        setReviewAcknowledged(
+          false,
+        );
+      } catch (caughtError) {
+        setError(
+          caughtError instanceof Error
+            ? caughtError.message
+            : "Unable to process resume.",
+        );
+
+        throw caughtError;
+      } finally {
+        setProcessingResume(
+          false,
+        );
+      }
     };
 
   const scanPage =
@@ -387,7 +602,7 @@ function App() {
 
       if (!id) {
         setError(
-          "Enter and save a candidate ID first.",
+          "Upload and process a resume first.",
         );
 
         return;
@@ -437,7 +652,7 @@ function App() {
 
       if (!id) {
         setError(
-          "Enter and save a candidate ID first.",
+          "Upload and process a resume first.",
         );
 
         return;
@@ -575,7 +790,7 @@ function App() {
 
       if (!id) {
         setError(
-          "Enter and save a candidate ID first.",
+          "Upload and process a resume first.",
         );
 
         return;
@@ -1021,6 +1236,14 @@ function App() {
       }
     };
 
+  /*
+   * Initial popup state load.
+   *
+   * Candidate IDs remain internal.
+   * If an ID already exists in Chrome storage,
+   * retrieve the candidate profile from the backend
+   * and rebuild the user-facing candidate summary.
+   */
   useEffect(() => {
     let cancelled =
       false;
@@ -1050,12 +1273,23 @@ function App() {
             );
           }
 
+          const hydratedState =
+            await hydrateCandidateProfile(
+              response.data,
+            );
+
+          if (
+            cancelled
+          ) {
+            return;
+          }
+
           setExtensionState(
-            response.data,
+            hydratedState,
           );
 
           setCandidateId(
-            response.data.candidateId ??
+            hydratedState.candidateId ??
               "",
           );
         } catch (caughtError) {
@@ -1087,10 +1321,13 @@ function App() {
       cancelled =
         true;
     };
-  }, []);
+  }, [
+    hydrateCandidateProfile,
+  ]);
 
   const busy =
     loading ||
+    processingResume ||
     scanning ||
     mapping ||
     filling ||
@@ -1142,41 +1379,20 @@ function App() {
         />
       </section>
 
-      <section className="candidate-section">
-        <label
-          className="status-label"
-          htmlFor="candidateId"
-        >
-          Candidate ID
-        </label>
-
-        <div className="candidate-input-row">
-          <input
-            id="candidateId"
-            value={
-              candidateId
-            }
-            onChange={(
-              event,
-            ) =>
-              setCandidateId(
-                event.target.value,
-              )
-            }
-            placeholder="MongoDB candidate ID"
-          />
-
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() =>
-              void saveCandidateId()
-            }
-          >
-            Save
-          </button>
-        </div>
-      </section>
+      <ResumeProfile
+        candidate={
+          extensionState.candidate
+        }
+        processing={
+          processingResume
+        }
+        disabled={
+          busy
+        }
+        onProcessResume={
+          processResume
+        }
+      />
 
       {scanResult && (
         <ScanSummary
@@ -1837,7 +2053,8 @@ function App() {
         type="button"
         disabled={
           busy ||
-          !candidateId.trim()
+          !candidateId.trim() ||
+          !extensionState.workdayDetected
         }
         onClick={() =>
           void mapPage()
@@ -1851,7 +2068,8 @@ function App() {
         type="button"
         disabled={
           busy ||
-          !candidateId.trim()
+          !candidateId.trim() ||
+          !extensionState.workdayDetected
         }
         onClick={() =>
           void autofillPage()
@@ -1863,7 +2081,10 @@ function App() {
       <button
         className="dynamic-scan-button"
         type="button"
-        disabled={busy}
+        disabled={
+          busy ||
+          !extensionState.workdayDetected
+        }
         onClick={() =>
           void scanDynamicSections()
         }
@@ -1876,7 +2097,8 @@ function App() {
         type="button"
         disabled={
           busy ||
-          !candidateId.trim()
+          !candidateId.trim() ||
+          !extensionState.workdayDetected
         }
         onClick={() =>
           void autofillRepeatable()
@@ -1888,7 +2110,10 @@ function App() {
       <button
         className="secondary-button"
         type="button"
-        disabled={busy}
+        disabled={
+          busy ||
+          !extensionState.workdayDetected
+        }
         onClick={() =>
           void scanNavigation()
         }

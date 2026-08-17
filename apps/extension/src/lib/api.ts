@@ -45,6 +45,26 @@ interface CandidateApiResponse {
   error?: string;
 }
 
+interface ResumeParseApiResponse {
+  success: boolean;
+
+  message?: string;
+
+  data?: {
+    candidateId: string;
+
+    profile: CandidateProfile;
+  };
+
+  error?: string;
+}
+
+export interface ResumeParseResult {
+  candidateId: string;
+
+  profile: CandidateProfile;
+}
+
 export const checkBackendHealth =
   async (): Promise<boolean> => {
     try {
@@ -68,6 +88,52 @@ export const checkBackendHealth =
     } catch {
       return false;
     }
+  };
+
+export const uploadAndParseResume =
+  async (
+    file: File,
+  ): Promise<ResumeParseResult> => {
+    const formData =
+      new FormData();
+
+    formData.append(
+      "resume",
+      file,
+    );
+
+    const response =
+      await fetch(
+        `${API_BASE_URL}/ai/resumes/parse`,
+        {
+          method: "POST",
+
+          body: formData,
+        },
+      );
+
+    const data =
+      (await response.json()) as ResumeParseApiResponse;
+
+    if (
+      !response.ok ||
+      !data.success ||
+      !data.data
+    ) {
+      throw new Error(
+        data.message ??
+          data.error ??
+          "Unable to process resume.",
+      );
+    }
+
+    return {
+      candidateId:
+        data.data.candidateId,
+
+      profile:
+        data.data.profile,
+    };
   };
 
 export const mapFields =

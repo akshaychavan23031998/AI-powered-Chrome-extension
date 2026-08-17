@@ -1,11 +1,19 @@
 export interface CandidateSummary {
   candidateId: string;
 
-  firstName: string;
+  firstName?: string;
 
-  lastName: string;
+  middleName?: string;
+
+  lastName?: string;
 
   email?: string;
+
+  title?: string;
+
+  skills?: string[];
+
+  resumeFileName?: string;
 }
 
 export interface ExtensionState {

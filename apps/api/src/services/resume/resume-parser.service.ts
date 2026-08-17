@@ -2,6 +2,10 @@ import path from "node:path";
 
 import mammoth from "mammoth";
 
+import {
+  PDFParse,
+} from "pdf-parse";
+
 import { ApiError } from "../../utils/api-error.js";
 
 const PDF_MIME_TYPE =
@@ -23,59 +27,56 @@ const normalizeExtractedText = (
 const extractPdfText = async (
   buffer: Buffer,
 ): Promise<string> => {
-  const pdfjs = await import(
-    "pdfjs-dist/legacy/build/pdf.mjs"
-  );
+  const parser =
+    new PDFParse({
+      data: buffer,
+    });
 
-  const loadingTask = pdfjs.getDocument({
-    data: new Uint8Array(buffer),
-  });
+  try {
+    const result =
+      await parser.getText();
 
-  const pdfDocument =
-    await loadingTask.promise;
+    return normalizeExtractedText(
+      result.text,
+    );
+  } catch (error) {
+    console.error(
+      "PDF resume extraction failed:",
+      error,
+    );
 
-  const pages: string[] = [];
-
-  for (
-    let pageNumber = 1;
-    pageNumber <= pdfDocument.numPages;
-    pageNumber += 1
-  ) {
-    const page =
-      await pdfDocument.getPage(pageNumber);
-
-    const content =
-      await page.getTextContent();
-
-    const pageText = content.items
-      .map((item) => {
-        if ("str" in item) {
-          return item.str;
-        }
-
-        return "";
-      })
-      .join(" ");
-
-    pages.push(pageText);
+    throw new ApiError(
+      422,
+      "Unable to extract text from the PDF resume.",
+    );
+  } finally {
+    await parser.destroy();
   }
-
-  return normalizeExtractedText(
-    pages.join("\n\n"),
-  );
 };
 
 const extractDocxText = async (
   buffer: Buffer,
 ): Promise<string> => {
-  const result =
-    await mammoth.extractRawText({
-      buffer,
-    });
+  try {
+    const result =
+      await mammoth.extractRawText({
+        buffer,
+      });
 
-  return normalizeExtractedText(
-    result.value,
-  );
+    return normalizeExtractedText(
+      result.value,
+    );
+  } catch (error) {
+    console.error(
+      "DOCX resume extraction failed:",
+      error,
+    );
+
+    throw new ApiError(
+      422,
+      "Unable to extract text from the DOCX resume.",
+    );
+  }
 };
 
 export interface ResumeExtractionResult {
@@ -131,9 +132,14 @@ export const extractResumeText = async (
     text,
 
     file: {
-      originalName: file.originalname,
-      mimeType: file.mimetype,
-      size: file.size,
+      originalName:
+        file.originalname,
+
+      mimeType:
+        file.mimetype,
+
+      size:
+        file.size,
     },
   };
 };
